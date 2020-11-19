@@ -1,13 +1,64 @@
+/*
+***********************************************************************************************************************
+*                                                     AVR-LCD MODULE
+*
+* File    : LCD.H
+* Version : 0.0.0.1 
+* Author  : Joshua Fain
+* Target  : ATMega1280
+* LCD     : Gravitech 20x4 LCD using HD44780 LCD controller
+*
+*
+* DESCRIPTION:
+* Header file for LCD.C. This is for use interfacing an AVR microcontroller and an LCD screen. This header file 
+* defines macrose and declares the functions defined in LCD.C.
+*
+* FUNCTIONS:
+*
+*
+*                                                       MIT LICENSE
+*
+* Copyright (c) 2020 Joshua Fain
+*
+* Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated 
+* documentation files (the "Software"), to deal in the Software without restriction, including without limitation the 
+* rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to 
+* permit ersons to whom the Software is furnished to do so, subject to the following conditions: The above copyright 
+* notice and this permission notice shall be included in all copies or substantial portions of the Software.
+* 
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
+* WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+* COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
+* OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+***********************************************************************************************************************
+*/
+
+
 #ifndef LCD_H
 #define LCD_H
 
-#define CTRL_PORT           PORTC
-#define REGISTER_SELECT     0x01 // Masks for 3 control port bits. RS  - 0 = Instruction Register, 1 = Data Register
-#define READ_WRITE          0x02 // R/W - 0 = Write, 1 = Read
-#define ENABLE              0x04
+// ---------------------------------
+// Define Control Port and flags
+// RS : 0 = Instruction Register, 1 = Data Register
+// R/W: 0 = Write, 1 = Read
+// Pulse enable to send command/instruction. Sent on 
+#define CTRL_PORT             PORTC
+#define REGISTER_SELECT       PC0
+#define READ_WRITE            PC1
+#define ENABLE                PC2
+
+#define DATA_REGISTER         CTRL_PORT &= ~(1 << REGISTER_SELECT)
+#define INST_REGISTER         CTRL_PORT |=  (1 << REGISTER_SELECT)
+
+#define READ                  CTRL_PORT |=  (1 << READ_WRITE)
+#define WRITE                 CTRL_PORT &= ~(1 << READ_WRITE)
+
+#define ENABLE_HI             CTRL_PORT |=  (1 << ENABLE)
+#define ENABLE_LO             CTRL_PORT &= ~(1 << ENABLE)
 
 
-#define DB_PORT               PORTA
+// Define Data Port and it's pins
+#define DATA_PORT             PORTA
 #define DB0                   PA0
 #define DB1                   PA1
 #define DB2                   PA2
@@ -58,17 +109,7 @@
 #define FONT_5x8              0x00
 
 
-void 
-lcd_wait_busy();
 
-void 
-lcd_pulse_enable();
-
-void
-lcd_send_command(uint8_t cmd);
-
-uint8_t
-lcd_read_addr(void);
 
 
 
@@ -108,5 +149,19 @@ lcd_read_data(void);
 // Special Functions
 void lcd_cursor_shift(uint8_t direction);
 void lcd_display_shift(uint8_t direction);
+
+
+void 
+lcd_wait_busy();
+
+void 
+lcd_pulse_enable();
+
+void
+lcd_send_command(uint8_t cmd);
+
+uint8_t
+lcd_read_addr(void);
+
 
 #endif // LCD_H

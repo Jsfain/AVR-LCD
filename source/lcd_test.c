@@ -2,7 +2,7 @@
 #include <avr/io.h>
 #include "../includes/prints.h"
 #include "../includes/usart.h"
-#include "../includes/lcd.h"
+#include "../includes/lcd_base.h"
 #include <util/delay.h>
 
 
@@ -26,7 +26,7 @@ int main(void)
   lcd_function_set (DATA_LENGTH_8_BITS | TWO_LINES);
   lcd_entry_mode_set (INCREMENT);
   lcd_clear_display();
-  lcd_display_on_off_ctrl (DISPLAY_ON | CURSOR_ON | BLINKING_OFF);
+  lcd_display_ctrl (DISPLAY_ON | CURSOR_ON | BLINKING_OFF);
 
   lcd_return_home();
 

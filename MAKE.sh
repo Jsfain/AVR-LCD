@@ -45,6 +45,20 @@ else
 fi
 
 
+echo -e ">> COMPILE: "${Compile[@]}" "$buildDir"/lcd_sf.o " $sourceDir"/lcd_sf.c"
+"${Compile[@]}" $buildDir/lcd_sf.o $sourceDir/lcd_sf.c
+status=$?
+sleep $t
+if [ $status -gt 0 ]
+then
+    echo -e "error compiling LCD_SF.C"
+    echo -e "program exiting with code $status"
+    exit $status
+else
+    echo -e "Compiling LCD_SF.C successful"
+fi
+
+
 echo -e "\n\r>> COMPILE: "${Compile[@]}" "$buildDir"/prints.o "$sourceDir"/prints.c"
 "${Compile[@]}" $buildDir/prints.o $sourceDir/prints.c
 status=$?
@@ -73,8 +87,8 @@ else
 fi
 
 
-echo -e "\n\r>> LINK: "${Link[@]}" "$buildDir"/lcd_test.elf "$buildDir"/lcd_test.o  "$buildDir"/lcd_base.o  "$buildDir"/usart.o "$buildDir"/prints.o "
-"${Link[@]}" $buildDir/lcd_test.elf $buildDir/lcd_test.o $buildDir/lcd_base.o $buildDir/usart.o $buildDir/prints.o
+echo -e "\n\r>> LINK: "${Link[@]}" "$buildDir"/lcd_test.elf "$buildDir"/lcd_test.o  "$buildDir"/lcd_base.o  "$buildDir"/lcd_sf.o  "$buildDir"/usart.o "$buildDir"/prints.o "
+"${Link[@]}" $buildDir/lcd_test.elf $buildDir/lcd_test.o $buildDir/lcd_base.o $buildDir/lcd_sf.o $buildDir/usart.o $buildDir/prints.o
 status=$?
 sleep $t
 if [ $status -gt 0 ]

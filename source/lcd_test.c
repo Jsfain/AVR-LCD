@@ -3,6 +3,7 @@
 #include "../includes/prints.h"
 #include "../includes/usart.h"
 #include "../includes/lcd_base.h"
+#include "../includes/lcd_sf.h"
 #include <util/delay.h>
 
 
@@ -31,6 +32,7 @@ int main(void)
   lcd_return_home();
 
   char c;
+  uint8_t addr;
 
   do
   {
@@ -49,15 +51,17 @@ int main(void)
       lcd_write_data(c);
     }
     
-    if (lcd_read_addr() == 0x14)
+    addr = lcd_read_addr();
+
+    if (addr == 0x14)
     {
       lcd_set_ddram_addr(0x40);
     }
-    else if (lcd_read_addr() == 0x40)
+    else if (addr == 0x40)
     {
       lcd_set_ddram_addr(0x54);
     }
-    else if (lcd_read_addr() == 0x54)
+    else if (addr == 0x54)
     {
       lcd_set_ddram_addr(0x14);
     }

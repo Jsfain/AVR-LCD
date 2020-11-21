@@ -274,9 +274,20 @@ lcd_set_ddram_addr (uint8_t add)
 -----------------------------------------------------------------------------------------------------------------------
 */
 
-///  NEED TO CREAT THIS
-//uint8_t
-//lcd_read_busy_and_addr (void);
+uint8_t
+lcd_read_busy_and_addr (void)
+{
+  uint8_t busy_addr;
+  DDRA = 0;
+  DATA_REGISTER;
+  READ;
+  CTRL_PORT |= (1 << ENABLE);
+  _delay_ms(1);
+  busy_addr = PINA;
+  _delay_ms(1);
+  DDRA = 0xFF;
+  return busy_addr;
+}
 
 
 
@@ -414,40 +425,11 @@ lcd_pulse_enable (void)
  *               timeout period.
 -----------------------------------------------------------------------------------------------------------------------
 */
+
 void 
 lcd_send_instruction (uint8_t inst)
 {
   DATA_PORT = inst;
   _delay_ms(1);
   lcd_pulse_enable();
-}
-
-
-
-uint8_t
-lcd_read_addr (void)
-{
-  uint8_t addr;
-  DDRA = 0;
-  DATA_REGISTER;
-  READ;
-  _delay_ms(5);
-  CTRL_PORT |= (1 << ENABLE);
-  _delay_ms(1);
-  addr = PINA;
-  DDRA = 0xFF;
-  return addr;
-}
-
-
-
-// Special Functions
-void lcd_cursor_shift (uint8_t direction)
-{
-  lcd_cursor_display_shift(CURSOR_DISPLAY_SHIFT | CURSOR_SHIFT | direction);
-}
-
-void lcd_display_shift(uint8_t direction)
-{
-  lcd_cursor_display_shift(CURSOR_DISPLAY_SHIFT | DISPLAY_SHIFT | direction);
 }

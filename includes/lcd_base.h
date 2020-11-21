@@ -51,7 +51,7 @@
 #ifndef LCD_BASE_H
 #define LCD_BASE_H
 
-
+#include <avr/io.h>
 /*
 ***********************************************************************************************************************
  *
@@ -383,18 +383,6 @@ lcd_pulse_enable();
 
 void
 lcd_send_instruction (uint8_t cmd);
-
-
-// Special Functions
-void 
-lcd_cursor_shift (uint8_t direction);
-
-void 
-lcd_display_shift (uint8_t direction);
-
-
-uint8_t
-lcd_read_addr(void);
 
 
 #endif // LCD_BASE_H

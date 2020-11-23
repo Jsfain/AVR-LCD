@@ -28,6 +28,7 @@
 *   (12) uint8_t   lcd_wait_busy (void)
 *   (13) void      lcd_pulse_enable (void)
 *   (14) void      lcd_send_instruction (uint8_t cmd)
+*   (15) void      lcd_print_error(uint8_t err)
 *
 *
 *                                                       MIT LICENSE
@@ -71,12 +72,12 @@
 #define ENABLE                PC2
 
 // REGISTER_SELECT
-#define DATA_REGISTER         CTRL_PORT &= ~(1 << REGISTER_SELECT) // RS = 0
-#define INST_REGISTER         CTRL_PORT |=  (1 << REGISTER_SELECT) // RS = 1
+#define DATA_REGISTER_SELECT  CTRL_PORT &= ~(1 << REGISTER_SELECT) // RS = 0
+#define INST_REGISTER_SELECT  CTRL_PORT |=  (1 << REGISTER_SELECT) // RS = 1
 
 // READ_WRITE
-#define WRITE                 CTRL_PORT &= ~(1 << READ_WRITE) // R/W = 0
-#define READ                  CTRL_PORT |=  (1 << READ_WRITE) // R/W = 1
+#define WRITE_MODE            CTRL_PORT &= ~(1 << READ_WRITE) // R/W = 0
+#define READ_MODE             CTRL_PORT |=  (1 << READ_WRITE) // R/W = 1
 
 // ENABLE
 #define ENABLE_LO             CTRL_PORT &= ~(1 << ENABLE) // E = 0
@@ -432,6 +433,22 @@ lcd_pulse_enable (void);
 
 void
 lcd_send_instruction (uint8_t cmd);
+
+
+
+/* 
+-----------------------------------------------------------------------------------------------------------------------
+ *                                                  PRINT LCD ERROR
+ * 
+ * Description : Prints the lcd error passed as the argument.
+ * 
+ * Arguments   : lcd error 
+-----------------------------------------------------------------------------------------------------------------------
+*/
+
+void 
+lcd_print_error(uint8_t err);
+
 
 
 #endif // LCD_BASE_H

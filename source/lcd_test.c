@@ -23,8 +23,9 @@ int main(void)
   DDRC = 0xFF;
   _delay_ms(16);
 
-
-  lcd_function_set (DATA_LENGTH_8_BITS | TWO_LINES);
+  uint8_t err;
+  err = lcd_function_set (DATA_LENGTH_8_BITS | TWO_LINES);
+  if (err != LCD_INSTR_SUCCESS) lcd_print_error(err);
   lcd_entry_mode_set (INCREMENT);
   lcd_clear_display();
   lcd_display_ctrl (DISPLAY_ON | CURSOR_ON | BLINKING_OFF);

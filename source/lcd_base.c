@@ -31,6 +31,7 @@
 *   (12) uint8_t   lcd_wait_busy (void)
 *   (13) void      lcd_pulse_enable (void)
 *   (14) void      lcd_send_instruction (uint8_t cmd)
+*   (15) void      lcd_print_error(uint8_t err)
 *
 *
 *                                                       MIT LICENSE
@@ -86,8 +87,8 @@ void
 lcd_clear_display (void)
 {
   lcd_wait_busy();
-  DATA_REGISTER;
-  WRITE;
+  DATA_REGISTER_SELECT;
+  WRITE_MODE;
   lcd_send_instruction (CLEAR_DISPLAY);
 }
 
@@ -106,8 +107,8 @@ void
 lcd_return_home (void)
 {
   lcd_wait_busy();
-  DATA_REGISTER;
-  WRITE;
+  DATA_REGISTER_SELECT;
+  WRITE_MODE;
   lcd_send_instruction (RETURN_HOME);
 }
 
@@ -136,9 +137,10 @@ lcd_entry_mode_set (uint8_t setting)
 {
   if (setting >= ENTRY_MODE_SET)
     return INVALID_ARGUMENT;
+
   lcd_wait_busy();
-  DATA_REGISTER;
-  WRITE;
+  DATA_REGISTER_SELECT;
+  WRITE_MODE;
   lcd_send_instruction (ENTRY_MODE_SET | setting);
   return LCD_INSTR_SUCCESS;
 }
@@ -167,9 +169,10 @@ lcd_display_ctrl (uint8_t setting)
 {
   if (setting >= DISPLAY_CTRL)
     return INVALID_ARGUMENT;
+
   lcd_wait_busy();
-  DATA_REGISTER;
-  WRITE;
+  DATA_REGISTER_SELECT;
+  WRITE_MODE;
   lcd_send_instruction (DISPLAY_CTRL | setting);
   return LCD_INSTR_SUCCESS;
 }
@@ -199,9 +202,10 @@ lcd_cursor_display_shift (uint8_t setting)
 {
   if (setting >= CURSOR_DISPLAY_SHIFT)
     return INVALID_ARGUMENT;
+
   lcd_wait_busy();
-  DATA_REGISTER;
-  WRITE;
+  DATA_REGISTER_SELECT;
+  WRITE_MODE;
   lcd_send_instruction (CURSOR_DISPLAY_SHIFT | setting);
   return LCD_INSTR_SUCCESS;
 }
@@ -230,9 +234,10 @@ lcd_function_set (uint8_t setting)
 {
   if (setting >= FUNCTION_SET)
     return INVALID_ARGUMENT;
+
   lcd_wait_busy();
-  DATA_REGISTER;
-  WRITE;
+  DATA_REGISTER_SELECT;
+  WRITE_MODE;
   lcd_send_instruction (FUNCTION_SET | setting);
   return LCD_INSTR_SUCCESS;
 }
@@ -257,9 +262,10 @@ lcd_set_cgram_addr (uint8_t acg)
 {
   if (acg >= SET_CGRAM_ADDR)
     return INVALID_ARGUMENT;
+
   lcd_wait_busy();
-  DATA_REGISTER;
-  WRITE;
+  DATA_REGISTER_SELECT;
+  WRITE_MODE;
   lcd_send_instruction (SET_CGRAM_ADDR | acg);
   return LCD_INSTR_SUCCESS;
 }
@@ -284,9 +290,10 @@ lcd_set_ddram_addr (uint8_t add)
 {
   if (add >= SET_DDRAM_ADDR)
     return INVALID_ARGUMENT;
+
   lcd_wait_busy();
-  DATA_REGISTER;
-  WRITE;
+  DATA_REGISTER_SELECT;
+  WRITE_MODE;
   lcd_send_instruction (SET_DDRAM_ADDR | add);
   return LCD_INSTR_SUCCESS;
 }
@@ -311,9 +318,9 @@ lcd_read_busy_and_addr (void)
 {
   uint8_t busy_addr;
   DDRA = 0;
-  DATA_REGISTER;
-  READ;
-  CTRL_PORT |= (1 << ENABLE);
+  DATA_REGISTER_SELECT;
+  READ_MODE;
+  ENABLE_HI;
   _delay_ms(1);
   busy_addr = PINA;
   _delay_ms(1);
@@ -340,8 +347,8 @@ void
 lcd_write_data (uint8_t data)
 {
   lcd_wait_busy();
-  INST_REGISTER;
-  WRITE;
+  INST_REGISTER_SELECT;
+  WRITE_MODE;
   DATA_PORT = data;
   _delay_ms(1);
   lcd_pulse_enable();
@@ -367,8 +374,8 @@ lcd_read_data (void)
   uint8_t data = 0;
   lcd_wait_busy();
   DDRA = 0;
-  INST_REGISTER;
-  READ;
+  INST_REGISTER_SELECT;
+  READ_MODE;
   _delay_ms(1);
   lcd_pulse_enable();
   data = PINA;
@@ -400,8 +407,8 @@ uint8_t
 lcd_wait_busy (void)
 {
   DDRA = 0;
-  DATA_REGISTER;
-  READ;
+  DATA_REGISTER_SELECT;
+  READ_MODE;
   _delay_ms(5);
   ENABLE_HI;
   uint8_t cnt = 0;
@@ -467,7 +474,19 @@ lcd_send_instruction (uint8_t inst)
 }
 
 
-void lcd_print_error(uint8_t err)
+
+/* 
+-----------------------------------------------------------------------------------------------------------------------
+ *                                                  PRINT LCD ERROR
+ * 
+ * Description : Prints the lcd error passed as the argument.
+ * 
+ * Arguments   : lcd error 
+-----------------------------------------------------------------------------------------------------------------------
+*/
+
+void 
+lcd_print_error(uint8_t err)
 {
   switch (err)
   {
@@ -484,6 +503,7 @@ void lcd_print_error(uint8_t err)
       print_str("\n\rBUSY_RESET_TIMEOUT");
       break;
     default:
+      print_str("\n\rINVALID LCD ERROR");
       break;
   }
 }

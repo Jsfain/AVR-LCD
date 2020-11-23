@@ -19,12 +19,12 @@
 * FUNCTIONS:
 *   (1)  void      lcd_clear_display (void)
 *   (2)  void      lcd_return_home (void)
-*   (3)  void      lcd_entry_mode_set (uint8_t setting)
-*   (4)  void      lcd_display_ctrl (uint8_t setting)
-*   (5)  void      lcd_cursor_display_shift (uint8_t setting)
-*   (6)  void      lcd_function_set (uint8_t setting)
-*   (7)  void      lcd_set_cgram_addr (uint8_t acg)
-*   (8)  void      lcd_set_ddram_addr (uint8_t add)
+*   (3)  uint8_t   lcd_entry_mode_set (uint8_t setting)
+*   (4)  uint8_t   lcd_display_ctrl (uint8_t setting)
+*   (5)  uint8_t   lcd_cursor_display_shift (uint8_t setting)
+*   (6)  uint8_t   lcd_function_set (uint8_t setting)
+*   (7)  uint8_t   lcd_set_cgram_addr (uint8_t acg)
+*   (8)  uint8_t   lcd_set_ddram_addr (uint8_t add)
 *   (9)  uint8_t   lcd_read_busy_and_address (void)
 *   (10) void      lcd_write_data (uint8_t data)
 *   (11) uint8_t   lcd_read_data (void)
@@ -126,16 +126,21 @@ lcd_return_home (void)
  * Settings    : INCREMENT or DECREMENT    - Specifies whether the cursor will increment or decrement by 1 upon a data
  *                                           read or write.
  *             : DISPLAY_SHIFT_DATA        - Setting this flag will cause the display to shift upon data read or write. 
+ * 
+ * Returns     : LCD Error code
 -----------------------------------------------------------------------------------------------------------------------
 */
 
-void 
+uint8_t 
 lcd_entry_mode_set (uint8_t setting)
 {
+  if (setting >= ENTRY_MODE_SET)
+    return INVALID_ARGUMENT;
   lcd_wait_busy();
   DATA_REGISTER;
   WRITE;
   lcd_send_instruction (ENTRY_MODE_SET | setting);
+  return LCD_INSTR_SUCCESS;
 }
 
 
@@ -152,16 +157,21 @@ lcd_entry_mode_set (uint8_t setting)
  * Settings    : DISPLAY_ON or DISPLAY_OFF     - Specify whether display will be ON or OFF.
  *             : CURSOR_ON or CURSOR_OFF       - Specify whether cursor will be ON or OFF. 
  *             : BLINKING_ON or BLINKING_OFF   - Specify whether cursor blinking will be turned ON or OFF. 
+ * 
+ * Returns     : LCD Error code
 -----------------------------------------------------------------------------------------------------------------------
 */
 
-void 
+uint8_t
 lcd_display_ctrl (uint8_t setting)
 {
+  if (setting >= DISPLAY_CTRL)
+    return INVALID_ARGUMENT;
   lcd_wait_busy();
   DATA_REGISTER;
   WRITE;
   lcd_send_instruction (DISPLAY_CTRL | setting);
+  return LCD_INSTR_SUCCESS;
 }
 
 
@@ -179,16 +189,21 @@ lcd_display_ctrl (uint8_t setting)
  * 
  * Settings    : CURSOR_SHIFT or DISPLAY_SHIFT   - Specify whether display or cursor will be shifted. 
  *             : RIGHT_SHIFT or LEFT_SHIFT       - Specify which direction the cursor or display will be shifted.
+ * 
+ * Returns     : LCD Error code
 -----------------------------------------------------------------------------------------------------------------------
 */
 
-void 
+uint8_t
 lcd_cursor_display_shift (uint8_t setting)
 {
+  if (setting >= CURSOR_DISPLAY_SHIFT)
+    return INVALID_ARGUMENT;
   lcd_wait_busy();
   DATA_REGISTER;
   WRITE;
   lcd_send_instruction (CURSOR_DISPLAY_SHIFT | setting);
+  return LCD_INSTR_SUCCESS;
 }
 
 
@@ -205,16 +220,21 @@ lcd_cursor_display_shift (uint8_t setting)
  * Settings    : DATA_LENTH_8_BITS or DATA_LENTH_4_BITS      - Specify whether to operate in 8-bit or 4-bit mode. 
  *             : TWO_LINES or ONE_LINE                       - Specify number of display lines.
  *             : FONT_5x10 or FONT_5x8                       - Specify characters are 5x10 or 5x8 dots.
+ * 
+ * Returns     : LCD Error code
 -----------------------------------------------------------------------------------------------------------------------
 */
 
-void 
+uint8_t
 lcd_function_set (uint8_t setting)
 {
+  if (setting >= FUNCTION_SET)
+    return INVALID_ARGUMENT;
   lcd_wait_busy();
   DATA_REGISTER;
   WRITE;
   lcd_send_instruction (FUNCTION_SET | setting);
+  return LCD_INSTR_SUCCESS;
 }
 
 
@@ -227,16 +247,21 @@ lcd_function_set (uint8_t setting)
  * 
  * Argument    : acg     - byte which holds the 6-bit address the CGRAM pointer will point to. The lowest 6 bits in the
  *                         acg argument will be the address.
+ * 
+ * Returns     : LCD Error code
 -----------------------------------------------------------------------------------------------------------------------
 */
 
-void 
+uint8_t
 lcd_set_cgram_addr (uint8_t acg)
 {
+  if (acg >= SET_CGRAM_ADDR)
+    return INVALID_ARGUMENT;
   lcd_wait_busy();
   DATA_REGISTER;
   WRITE;
   lcd_send_instruction (SET_CGRAM_ADDR | acg);
+  return LCD_INSTR_SUCCESS;
 }
 
 
@@ -249,16 +274,21 @@ lcd_set_cgram_addr (uint8_t acg)
  * 
  * Argument    : add     - byte which holds the 7-bit address the DDRAM pointer will point to. The lowest 7 bits in the
  *                         add argument will be the address.
+ * 
+ * Returns     : LCD Error code
 -----------------------------------------------------------------------------------------------------------------------
 */
 
-void 
+uint8_t
 lcd_set_ddram_addr (uint8_t add)
 {
+  if (add >= SET_DDRAM_ADDR)
+    return INVALID_ARGUMENT;
   lcd_wait_busy();
   DATA_REGISTER;
   WRITE;
   lcd_send_instruction (SET_DDRAM_ADDR | add);
+  return LCD_INSTR_SUCCESS;
 }
 
 
@@ -271,6 +301,8 @@ lcd_set_ddram_addr (uint8_t add)
  * 
  * Returns     : byte     - the MSB (bit 7) is the Busy Flag. This will be set to 1 if controller is busy.  The lowest
  *                          7 bits (bits 0 to 6) will specify the value of the address counter.
+ * 
+ * Returns     : byte. Bit 7 is the Busy Flag and bits 0 to 6 are the address.
 -----------------------------------------------------------------------------------------------------------------------
 */
 
@@ -291,7 +323,6 @@ lcd_read_busy_and_addr (void)
 
 
 
-
 /* 
 -----------------------------------------------------------------------------------------------------------------------
  *                                           WRITE DATA TO DDRAM or CGRAM
@@ -305,7 +336,7 @@ lcd_read_busy_and_addr (void)
 -----------------------------------------------------------------------------------------------------------------------
 */
 
-void 
+void
 lcd_write_data (uint8_t data)
 {
   lcd_wait_busy();
@@ -313,7 +344,7 @@ lcd_write_data (uint8_t data)
   WRITE;
   DATA_PORT = data;
   _delay_ms(1);
-  lcd_pulse_enable(); 
+  lcd_pulse_enable();
 }
 
 
@@ -390,6 +421,7 @@ lcd_wait_busy (void)
 }
 
 
+
 /* 
 -----------------------------------------------------------------------------------------------------------------------
  *                                                  PULSE ENABLE PIN
@@ -432,4 +464,26 @@ lcd_send_instruction (uint8_t inst)
   DATA_PORT = inst;
   _delay_ms(1);
   lcd_pulse_enable();
+}
+
+
+void lcd_print_error(uint8_t err)
+{
+  switch (err)
+  {
+    case LCD_INSTR_SUCCESS:
+      print_str("\n\rLCD_INSTR_SUCCESS");
+      break;
+    case INVALID_ARGUMENT:
+      print_str("\n\rINVALID_ARGUMENT");
+      break;
+    case BUSY_RESET_SUCCESS:
+      print_str("\n\rBUSY_RESET_SUCCESS");
+      break;
+    case BUSY_RESET_TIMEOUT:
+      print_str("\n\rBUSY_RESET_TIMEOUT");
+      break;
+    default:
+      break;
+  }
 }

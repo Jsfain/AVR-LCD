@@ -19,7 +19,7 @@ The AVR-LCD interface is composed of two source/header files. One that explicite
     * This includes the functions that execute the basic instruction set available to the LCD controller. Any instruction that also requires setting bits in the DATA_PORT to specify certain operation or functionality of the LCD allows passing these settings as flags as the argument.  For example, the LCD controller's CURSOR OR DISPLAY SHIFT instruction will be executed by calling lcd_cursor_display_shift(arg).  To shift the display to the right, then 'arg' = 'DISPLAY | RIGHT'.
 
 2. LCD_SF.C(H)
-    * Includes functions to execute specific instructions using the basic instructions in LCD_BASE.  For instance, lcd_display_shift_right() can be called to shift the display to the right, which will just call the basic command lcd_cursor_display_shift(DISPLAY | RIGHT).
+    * Includes functions to execute specific instructions using the basic instructions in LCD_BASE.  For instance, lcd_display_shift(RIGHT) can be called to shift the display to the right, which will just call the basic instruction lcd_cursor_display_shift(DISPLAY | RIGHT).
 
 
 ### Additional Required Files

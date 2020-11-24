@@ -15,9 +15,10 @@
 *
 *
 * FUNCTIONS:
-*   (1)  void      lcd_cursor_shift (uint8_t direction)
-*   (2)  void      lcd_display_shift (uint8_t direction)
-*   (3)  void      lcd_read_addr(void)
+*   (1)  uint8_t   lcd_read_addr(void)
+*   (2)  void      lcd_cursor_shift (uint8_t direction)
+*   (3)  void      lcd_display_shift (uint8_t direction)
+*
 *
 *
 *                                                       MIT LICENSE
@@ -58,6 +59,19 @@
 
 
 
+/* 
+-----------------------------------------------------------------------------------------------------------------------
+ *                                                 READ ADDRESS COUNTER
+ * 
+ * Description : Reads the address counter by calling lcd_read_busy_and_addr() and returning the value with the busy
+ *               flag bit cleared.
+ * 
+ * Arguments   : None
+ * 
+ * Returns     : Current value of the address counter.
+-----------------------------------------------------------------------------------------------------------------------
+*/
+
 uint8_t
 lcd_read_addr (void)
 {
@@ -67,12 +81,35 @@ lcd_read_addr (void)
 }
 
 
+
+/* 
+-----------------------------------------------------------------------------------------------------------------------
+ *                                                     SHIFT CURSOR
+ * 
+ * Description : Shift cursor one position in the specified direction.
+ * 
+ * Arguments   : Direction. RIGHT or LEFT
+-----------------------------------------------------------------------------------------------------------------------
+*/
+
 void lcd_cursor_shift (uint8_t direction)
 {
-  lcd_cursor_display_shift (CURSOR_DISPLAY_SHIFT | CURSOR_SHIFT | direction);
+  lcd_cursor_display_shift (CURSOR_SHIFT | direction);
 }
+
+
+
+/* 
+-----------------------------------------------------------------------------------------------------------------------
+ *                                                     SHIFT DISPLAY
+ * 
+ * Description : Shift display one position in the specified direction.
+ * 
+ * Arguments   : Direction. RIGHT or LEFT
+-----------------------------------------------------------------------------------------------------------------------
+*/
 
 void lcd_display_shift (uint8_t direction)
 {
-  lcd_cursor_display_shift (CURSOR_DISPLAY_SHIFT | DISPLAY_SHIFT | direction);
+  lcd_cursor_display_shift (DISPLAY_SHIFT | direction);
 }

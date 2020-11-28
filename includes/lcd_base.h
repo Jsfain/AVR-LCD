@@ -14,21 +14,22 @@
 *
 *
 * FUNCTIONS:
-*   (1)  void      lcd_clear_display (void)
-*   (2)  void      lcd_return_home (void)
-*   (3)  uint8_t   lcd_entry_mode_set (uint8_t setting)
-*   (4)  uint8_t   lcd_display_ctrl (uint8_t setting)
-*   (5)  uint8_t   lcd_cursor_display_shift (uint8_t setting)
-*   (6)  uint8_t   lcd_function_set (uint8_t setting)
-*   (7)  uint8_t   lcd_set_cgram_addr (uint8_t acg)
-*   (8)  uint8_t   lcd_set_ddram_addr (uint8_t add)
-*   (9)  uint8_t   lcd_read_busy_and_address (void)
-*   (10) void      lcd_write_data (uint8_t data)
-*   (11) uint8_t   lcd_read_data (void)
-*   (12) uint8_t   lcd_wait_busy (void)
-*   (13) void      lcd_pulse_enable (void)
-*   (14) void      lcd_send_instruction (uint8_t cmd)
-*   (15) void      lcd_print_error(uint8_t err)
+*   (1)  void      lcd_init (void)
+*   (2)  void      lcd_clear_display (void)
+*   (3)  void      lcd_return_home (void)
+*   (4)  uint8_t   lcd_entry_mode_set (uint8_t setting)
+*   (5)  uint8_t   lcd_display_ctrl (uint8_t setting)
+*   (6)  uint8_t   lcd_cursor_display_shift (uint8_t setting)
+*   (7)  uint8_t   lcd_function_set (uint8_t setting)
+*   (8)  uint8_t   lcd_set_cgram_addr (uint8_t acg)
+*   (9)  uint8_t   lcd_set_ddram_addr (uint8_t add)
+*   (10)  uint8_t   lcd_read_busy_and_address (void)
+*   (11) void      lcd_write_data (uint8_t data)
+*   (12) uint8_t   lcd_read_data (void)
+*   (13) uint8_t   lcd_wait_busy (void)
+*   (14) void      lcd_pulse_enable (void)
+*   (15) void      lcd_send_instruction (uint8_t cmd)
+*   (16) void      lcd_print_error(uint8_t err)
 *
 *
 *                                                       MIT LICENSE
@@ -71,6 +72,8 @@
 #define READ_WRITE            PC1
 #define ENABLE                PC2
 
+#define CTRL_PORT_DDR         DDRC
+
 // REGISTER_SELECT
 #define DATA_REGISTER_SELECT  CTRL_PORT &= ~(1 << REGISTER_SELECT) // RS = 0
 #define INST_REGISTER_SELECT  CTRL_PORT |=  (1 << REGISTER_SELECT) // RS = 1
@@ -87,6 +90,7 @@
 
 // -------------- Data Port & PINS
 
+#define DATA_PORT_DDR         DDRA
 #define DATA_PORT             PORTA
 #define DB0                   PA0
 #define DB1                   PA1
@@ -165,6 +169,20 @@
  * 
 ***********************************************************************************************************************
 */
+
+
+
+/* 
+-----------------------------------------------------------------------------------------------------------------------
+ *                                                 INITIALIZE THE LCD
+ * 
+ * Description : This is the 'Initializing by Instruction' routine that must be executed for 8-bit mode the power
+ *               supply conditions for operating the internal reset circuit are not met when powering up.  
+-----------------------------------------------------------------------------------------------------------------------
+*/
+
+void 
+lcd_init(void);
 
 
 

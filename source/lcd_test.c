@@ -11,26 +11,10 @@ int main(void)
 {
   USART_Init();
 
-  print_str("\n\rhello");
-
-  CTRL_PORT &= ~REGISTER_SELECT;
-  CTRL_PORT &= ~ENABLE;
-  CTRL_PORT &= ~READ_WRITE;
-
-  CTRL_PORT = 0;
-
-  DDRA = 0xFF;
-  DDRC = 0xFF;
-  _delay_ms(16);
-
-  uint8_t err;
-  err = lcd_function_set (DATA_LENGTH_8_BITS | TWO_LINES);
-  if (err != LCD_INSTR_SUCCESS) lcd_print_error(err);
-  lcd_entry_mode_set (INCREMENT);
-  lcd_clear_display();
-  lcd_display_ctrl (DISPLAY_ON | CURSOR_ON | BLINKING_OFF);
-
-  lcd_return_home();
+  // Ensure LCD is initialized 
+  // and display and cursor ON.
+  lcd_init();
+  lcd_display_ctrl (DISPLAY_ON | CURSOR_ON | BLINKING_ON);
 
   char c;
   uint8_t addr;
@@ -39,9 +23,7 @@ int main(void)
   do
     {
       c = USART_Receive();
-      USART_Transmit(c);
-      print_str("\n\r c = 0x");print_hex(c);
-
+      
       if (c == 127) // backspace and delete
         {        
           addr = lcd_read_addr();
@@ -141,19 +123,6 @@ int main(void)
         print_str("\n\r addr = 0x");print_hex(addr);
     } 
   while (1);
-  
-  //lcd_return_home();
-
-  /*
-  for(uint8_t k = 0; k < 40; k++)
-  {
-    _delay_ms(1000);
-    lcd_display_shift(RIGHT_SHIFT);
-  }
-  */
-  
-
-
 
   return 1;
 }

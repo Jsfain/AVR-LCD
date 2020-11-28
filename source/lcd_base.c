@@ -17,21 +17,22 @@
 *
 *
 * FUNCTIONS:
-*   (1)  void      lcd_clear_display (void)
-*   (2)  void      lcd_return_home (void)
-*   (3)  uint8_t   lcd_entry_mode_set (uint8_t setting)
-*   (4)  uint8_t   lcd_display_ctrl (uint8_t setting)
-*   (5)  uint8_t   lcd_cursor_display_shift (uint8_t setting)
-*   (6)  uint8_t   lcd_function_set (uint8_t setting)
-*   (7)  uint8_t   lcd_set_cgram_addr (uint8_t acg)
-*   (8)  uint8_t   lcd_set_ddram_addr (uint8_t add)
-*   (9)  uint8_t   lcd_read_busy_and_address (void)
-*   (10) void      lcd_write_data (uint8_t data)
-*   (11) uint8_t   lcd_read_data (void)
-*   (12) uint8_t   lcd_wait_busy (void)
-*   (13) void      lcd_pulse_enable (void)
-*   (14) void      lcd_send_instruction (uint8_t cmd)
-*   (15) void      lcd_print_error(uint8_t err)
+*   (1)  void      lcd_init (void)
+*   (2)  void      lcd_clear_display (void)
+*   (3)  void      lcd_return_home (void)
+*   (4)  uint8_t   lcd_entry_mode_set (uint8_t setting)
+*   (5)  uint8_t   lcd_display_ctrl (uint8_t setting)
+*   (6)  uint8_t   lcd_cursor_display_shift (uint8_t setting)
+*   (7)  uint8_t   lcd_function_set (uint8_t setting)
+*   (8)  uint8_t   lcd_set_cgram_addr (uint8_t acg)
+*   (9)  uint8_t   lcd_set_ddram_addr (uint8_t add)
+*   (10) uint8_t   lcd_read_busy_and_address (void)
+*   (11) void      lcd_write_data (uint8_t data)
+*   (12) uint8_t   lcd_read_data (void)
+*   (13) uint8_t   lcd_wait_busy (void)
+*   (14) void      lcd_pulse_enable (void)
+*   (15) void      lcd_send_instruction (uint8_t cmd)
+*   (16) void      lcd_print_error(uint8_t err)
 *
 *
 *                                                       MIT LICENSE
@@ -68,6 +69,49 @@
  * 
 ***********************************************************************************************************************
 */
+
+
+/* 
+-----------------------------------------------------------------------------------------------------------------------
+ *                                                 INITIALIZE THE LCD
+ * 
+ * Description : This is the 'Initializing by Instruction' routine that must be executed for 8-bit mode the power
+ *               supply conditions for operating the internal reset circuit are not met when powering up.  
+-----------------------------------------------------------------------------------------------------------------------
+*/
+
+void
+lcd_init (void)
+{
+  // Set data direction for Data and Control ports
+  DATA_PORT_DDR = 0xFF;
+  CTRL_PORT_DDR = 0xFF;
+
+
+  // Set ctrl port
+  DATA_REGISTER_SELECT;
+  WRITE_MODE;
+  ENABLE_LO;
+
+
+  // The busy flag should not be checked until after these 
+  // three FUNCTION_SET instructions have been sent.
+  _delay_ms(16);
+  lcd_send_instruction (FUNCTION_SET | DATA_LENGTH_8_BITS);
+  _delay_ms(5);
+  lcd_send_instruction (FUNCTION_SET | DATA_LENGTH_8_BITS);
+  _delay_ms(0.2);
+  lcd_send_instruction (FUNCTION_SET | DATA_LENGTH_8_BITS);
+
+
+  // Busy flag can now be checked, so can
+  // now call the instruction functions.
+  lcd_function_set (DATA_LENGTH_8_BITS | TWO_LINES | FONT_5x8);
+  lcd_display_ctrl (DISPLAY_OFF | CURSOR_OFF | BLINKING_OFF);
+  lcd_clear_display();
+  lcd_entry_mode_set (INCREMENT);
+}
+
 
 
 
@@ -469,7 +513,7 @@ void
 lcd_send_instruction (uint8_t inst)
 {
   DATA_PORT = inst;
-  _delay_ms(1);
+  _delay_ms(0.2);
   lcd_pulse_enable();
 }
 

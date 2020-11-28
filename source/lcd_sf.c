@@ -11,14 +11,13 @@
 * DESCRIPTION:
 * Contains the function definitions for special functions used to initiate specific behaviors from the LCD. These 
 * functions require the functions in LCD_BASE.C/H. The functions here will call the relevant basic instruction function
-* required to execute the requested behavior in the special function called here.
+* required to execute the requested behavior of the special function called here.
 *
 *
 * FUNCTIONS:
 *   (1)  uint8_t   lcd_read_addr(void)
 *   (2)  void      lcd_cursor_shift (uint8_t direction)
 *   (3)  void      lcd_display_shift (uint8_t direction)
-*
 *
 *
 *                                                       MIT LICENSE

@@ -17,7 +17,8 @@
 * The test program will adjust the address counter when it reaches the last address of a line. In this case, when 
 * navigating to the next position, either by entering a character or pressing the right arrow key, then the address 
 * counter will be updated to point to the first DDRAM address of the next line, rather than the next chrnological 
-* DDRAM address.  This is necessary because the display lines map to the DDRAM addresses as follows:
+* DDRAM address. Similarly, for when moving backwards/decrementing. This is necessary because the display lines map to
+* the DDRAM addresses as follows:
 *
 * Line 1: DDRAM Address - 0x00 - 0x13
 * Line 2: DDRAM Address - 0x40 - 0x53
@@ -52,33 +53,38 @@
 
 
 
-// NOTE:
-// when entering a character or navigating the LCD screen the following test example will adjust the address counter
-// to cause the 
 
 int main(void)
 {
   USART_Init();
 
-  // Ensure LCD is initialized 
-  // and display and cursor ON.
+  // Ensure LCD is initialized.
   lcd_init();
-  lcd_display_ctrl (DISPLAY_ON | CURSOR_ON | BLINKING_ON);
 
-  char c;
+  lcd_display_ctrl (DISPLAY_ON | CURSOR_ON | BLINKING_OFF);
+
+  char c;  
   uint8_t addr;
 
   do
     {
       c = USART_Receive();      
 
-      // backspace button on MAC = 127. This sections will perform and backspace
-      // and delete if the backspace button was pressed.
+      // If backspace is pressed then this sections will perform
+      // backspace and delete the previous character.
+      // Backspace on Mac is 127.
       if (c == 127)
         {        
+          // set display to decrement 
+          // AC when character entered. 
+          lcd_entry_mode_set (DECREMENT);
+
+          // load current value of AC to see if it
+          // is pointing to the beginning of a line.
           addr = lcd_read_addr();
 
-          lcd_entry_mode_set (DECREMENT);
+          // adjust AC if address is at beginning of a line.
+          // else just perform a LEFT_SHIFT.
           if (0x40 == addr)
             lcd_set_ddram_addr(0x13);
           else if (0x14 == addr)
@@ -88,11 +94,15 @@ int main(void)
           else
             lcd_cursor_shift (LEFT_SHIFT);
 
+          // Write ' ' to location to clear it's value,
+          // and then reset to INCREMENT mode.
           lcd_write_data (' ');
           lcd_cursor_shift (RIGHT_SHIFT);
           lcd_entry_mode_set (INCREMENT);
         }
 
+      // if 'ENTER' is pressed, then point AC to the first
+      // address of the next line. 
       else if (c == '\r')
       {
         addr = lcd_read_addr();
@@ -107,22 +117,29 @@ int main(void)
           lcd_set_ddram_addr (0x00);
       }
 
-      else if (c == 0x08) // ctrl + 'h' = home.
+      // if ctrl + 'h' is entered then return home. 
+      else if (c == 0x08)
       {
         lcd_return_home();
       } 
-      
-      else if (c == 0x03) // ctrl + 'c' = clear screen.
+
+      // if ctrl + 'c' is entered then clear screen.
+      else if (c == 0x03) 
       {
         lcd_clear_display();
       }
 
-      else if (c == 0x04) // ctrl + 'd' shift display
+      // if ctrl + 'd' is entered then shift display.
+      // Note that this will not adjust for address
+      // counter location.
+      else if (c == 0x04) 
       {
         lcd_display_shift (RIGHT_SHIFT);
       }
 
-      else if (c == 0x1B) // direction
+      // if right- or left-arrow is pressed then
+      // move cursor in the indicated direction.
+      else if (c == 0x1B)
       {
         addr = lcd_read_addr();
         print_str("\n\r addr -> = 0x");print_hex(addr);
@@ -155,7 +172,8 @@ int main(void)
           }
       } 
 
-      else // move foward and print character.
+      // print character
+      else 
         {
           lcd_write_data(c);
 
@@ -168,9 +186,6 @@ int main(void)
           else if (addr == 0x54)
             lcd_set_ddram_addr(0x14);
         }
-        
-        addr = lcd_read_addr();
-        print_str("\n\r addr = 0x");print_hex(addr);
     } 
   while (1);
 

@@ -23,7 +23,7 @@
 *   (7)  uint8_t   lcd_function_set (uint8_t setting)
 *   (8)  uint8_t   lcd_set_cgram_addr (uint8_t acg)
 *   (9)  uint8_t   lcd_set_ddram_addr (uint8_t add)
-*   (10)  uint8_t   lcd_read_busy_and_address (void)
+*   (10) uint8_t   lcd_read_busy_and_address (void)
 *   (11) void      lcd_write_data (uint8_t data)
 *   (12) uint8_t   lcd_read_data (void)
 *   (13) uint8_t   lcd_wait_busy (void)

@@ -110,6 +110,9 @@ lcd_init (void)
   lcd_display_ctrl (DISPLAY_OFF | CURSOR_OFF | BLINKING_OFF);
   lcd_clear_display();
   lcd_entry_mode_set (INCREMENT);
+
+  print_str("\n\r post init()");
+  
 }
 
 

@@ -53,7 +53,6 @@
 
 
 
-
 int main(void)
 {
   USART_Init();
@@ -61,30 +60,95 @@ int main(void)
   // Ensure LCD is initialized.
   lcd_init();
 
-  lcd_display_ctrl (DISPLAY_ON | CURSOR_ON | BLINKING_OFF);
+
+  lcd_display_ctrl (DISPLAY_ON | CURSOR_ON | BLINKING_ON);
 
   char c;  
   uint8_t addr;
 
   do
+  {
+  
+    c = USART_Receive();      
+    print_str("\n\r0x"); print_hex(c);
+
+    //
+    // If "backspace" is entered, this section will backspace, delete
+    // character, backspace. Note this is set for a use with a mac keyboard
+    // where the backspace/delete key = 127 (delete).
+    //
+    if (c == 127)
+    {        
+      // set display to decrement address counter (AC)
+      lcd_entry_mode_set (DECREMENT);
+
+      // get current value of AC
+      addr = lcd_read_addr();
+
+      //
+      // If AC is set to the first position of any display line, then must 
+      // manually set its value to point to the last position of the previous
+      // line. If not, then only need to perform a LEFT_SHIFT.
+      //
+      if (0x40 == addr)
+        lcd_set_ddram_addr(0x13);
+      else if (0x14 == addr)
+        lcd_set_ddram_addr(0x53);
+      else if (0x54 == addr)
+        lcd_set_ddram_addr(0x27);
+      else
+        lcd_cursor_shift(LEFT_SHIFT);
+
+      // Write space (' ') to AC location to clear it's
+      // current value, and then reset to INCREMENT mode.
+      lcd_write_data (' ');
+      lcd_cursor_shift(RIGHT_SHIFT);
+      lcd_entry_mode_set(INCREMENT);
+    }
+
+    // if 'ENTER' is pressed, point AC to the first address of the next line. 
+    else if (c == '\r')
     {
-      c = USART_Receive();      
+      addr = lcd_read_addr();
 
-      // If backspace is pressed then this sections will perform
-      // backspace and delete the previous character.
-      // Backspace on Mac is 127.
-      if (c == 127)
-        {        
-          // set display to decrement 
-          // AC when character entered. 
-          lcd_entry_mode_set (DECREMENT);
+      if ((addr >= 0x00) && (addr <= 0x13))
+        lcd_set_ddram_addr (0x40);
+      else if ((addr >= 0x14) && (addr <= 0x27))
+        lcd_set_ddram_addr (0x54);
+      else if ((addr >= 0x40) && (addr <= 0x53))
+        lcd_set_ddram_addr (0x14);
+      else if ((addr >= 0x54) && (addr <= 0x67))
+        lcd_set_ddram_addr (0x00);
+    }
 
-          // load current value of AC to see if it
-          // is pointing to the beginning of a line.
-          addr = lcd_read_addr();
+    // if ctrl + 'h' is pressed, then return home. 
+    else if (c == 0x08)
+      lcd_return_home();
+    
+    // if ctrl + 'c' is pressed then clear screen.
+    else if (c == 0x03) 
+      lcd_clear_display();
 
-          // adjust AC if address is at beginning of a line.
-          // else just perform a LEFT_SHIFT.
+    // if ctrl + 'd' is pressed then shift display. This will NOT adjust AC.
+    else if (c == 0x04) 
+      lcd_display_shift (RIGHT_SHIFT);
+
+    //
+    // If right/left arrow is pressed then move cursor in that direction.
+    // Note on mac keyboard, right and left arrows are 3 characters long and 
+    // only differ in the third character. Right = 0x1B5B43, Left = 0x1B5B44.
+    //
+    else if (c == 0x1B)
+    {
+      addr = lcd_read_addr();
+      c = USART_Receive();
+      if (c == 0x5B)
+      {
+        c = USART_Receive();
+
+        // Left arrow
+        if (c == 0x44)
+        {
           if (0x40 == addr)
             lcd_set_ddram_addr(0x13);
           else if (0x14 == addr)
@@ -93,100 +157,38 @@ int main(void)
             lcd_set_ddram_addr(0x27);
           else
             lcd_cursor_shift (LEFT_SHIFT);
-
-          // Write ' ' to location to clear it's value,
-          // and then reset to INCREMENT mode.
-          lcd_write_data (' ');
-          lcd_cursor_shift (RIGHT_SHIFT);
-          lcd_entry_mode_set (INCREMENT);
         }
-
-      // if 'ENTER' is pressed, then point AC to the first
-      // address of the next line. 
-      else if (c == '\r')
-      {
-        addr = lcd_read_addr();
-
-        if ((addr >= 0x00) && (addr <= 0x13))
-          lcd_set_ddram_addr (0x40);
-        else if ((addr >= 0x14) && (addr <= 0x27))
-          lcd_set_ddram_addr (0x54);
-        else if ((addr >= 0x40) && (addr <= 0x53))
-          lcd_set_ddram_addr (0x14);
-        else if ((addr >= 0x54) && (addr <= 0x67))
-          lcd_set_ddram_addr (0x00);
-      }
-
-      // if ctrl + 'h' is entered then return home. 
-      else if (c == 0x08)
-      {
-        lcd_return_home();
-      } 
-
-      // if ctrl + 'c' is entered then clear screen.
-      else if (c == 0x03) 
-      {
-        lcd_clear_display();
-      }
-
-      // if ctrl + 'd' is entered then shift display.
-      // Note that this will not adjust for address
-      // counter location.
-      else if (c == 0x04) 
-      {
-        lcd_display_shift (RIGHT_SHIFT);
-      }
-
-      // if right- or left-arrow is pressed then
-      // move cursor in the indicated direction.
-      else if (c == 0x1B)
-      {
-        addr = lcd_read_addr();
-        print_str("\n\r addr -> = 0x");print_hex(addr);
-        c = USART_Receive();
-        if (c == 0x5B)
-          {
-            c = USART_Receive();
-            if (c == 0x44)
-              {
-                if (0x40 == addr)
-                  lcd_set_ddram_addr(0x13);
-                else if (0x14 == addr)
-                  lcd_set_ddram_addr(0x53);
-                else if (0x54 == addr)
-                  lcd_set_ddram_addr(0x27);
-                else
-                  lcd_cursor_shift (LEFT_SHIFT);
-              }
-            else if (c == 0x43)
-              {
-                if (addr == 0x13)
-                  lcd_set_ddram_addr(0x40);
-                else if (addr == 0x53)
-                  lcd_set_ddram_addr(0x14);
-                else if (addr == 0x27)
-                  lcd_set_ddram_addr(0x54);
-                else
-                  lcd_cursor_shift (RIGHT_SHIFT);
-              }
-          }
-      } 
-
-      // print character
-      else 
+        // right arrow
+        else if (c == 0x43)
         {
-          lcd_write_data(c);
-
-          addr = lcd_read_addr();
-
-          if (addr == 0x14)
+          if (addr == 0x13)
             lcd_set_ddram_addr(0x40);
-          else if (addr == 0x40)
-            lcd_set_ddram_addr(0x54);
-          else if (addr == 0x54)
+          else if (addr == 0x53)
             lcd_set_ddram_addr(0x14);
+          else if (addr == 0x27)
+            lcd_set_ddram_addr(0x54);
+          else
+            lcd_cursor_shift (RIGHT_SHIFT);
         }
+      }
     } 
+
+    // print character to LCD display
+    else 
+    {
+      lcd_write_data(c);
+
+      // AC adjustments if at the start of a display line.
+      addr = lcd_read_addr();
+      if (addr == 0x14)
+        lcd_set_ddram_addr(0x40);
+      else if (addr == 0x40)
+        lcd_set_ddram_addr(0x54);
+      else if (addr == 0x54)
+        lcd_set_ddram_addr(0x14);
+    }
+  
+  } 
   while (1);
 
   return 1;

@@ -2,37 +2,19 @@
 ***********************************************************************************************************************
 *                                                     AVR-LCD MODULE
 *
-* File    : LCD_BASE.H
-* Author  : Joshua Fain
-* Target  : ATMega1280
-* LCD     : Gravitech 20x4 LCD using HD44780 LCD controller
+* File         : LCD_BASE.H
+* Author       : Joshua Fain
+* Host Target  : ATMega1280
+* License      : MIT
+* LCD          : Gravitech 20x4 LCD using HD44780 LCD controller
+* Copyright (c) 2020
 *
-*
-* DESCRIPTION:
 * Defines basic functions for interfacing with the LCD. The functions here are used to implement the basic instructions
 * available to the HD44780. 'setting' arguments can be passed to the basic functions with the corresponding function
 * requires setting certain bits to specify features, settings, or operation. These settings are available as MACRO
 * flags defined in LCD_BASE.H.  Also included here are some non-basic, but required helper functions, for example, 
 * lcd_wait_busy() and lcd_send_instruction().
 *
-*
-* FUNCTIONS:
-*   (1)  void      lcd_init (void)
-*   (2)  void      lcd_clear_display (void)
-*   (3)  void      lcd_return_home (void)
-*   (4)  uint8_t   lcd_entry_mode_set (uint8_t setting)
-*   (5)  uint8_t   lcd_display_ctrl (uint8_t setting)
-*   (6)  uint8_t   lcd_cursor_display_shift (uint8_t setting)
-*   (7)  uint8_t   lcd_function_set (uint8_t setting)
-*   (8)  uint8_t   lcd_set_cgram_addr (uint8_t acg)
-*   (9)  uint8_t   lcd_set_ddram_addr (uint8_t add)
-*   (10) uint8_t   lcd_read_busy_and_address (void)
-*   (11) void      lcd_write_data (uint8_t data)
-*   (12) uint8_t   lcd_read_data (void)
-*   (13) uint8_t   lcd_wait_busy (void)
-*   (14) void      lcd_pulse_enable (void)
-*   (15) void      lcd_send_instruction (uint8_t cmd)
-*   (16) void      lcd_print_error(uint8_t err)
 *
 *
 *                                                       MIT LICENSE
@@ -52,13 +34,24 @@
 ***********************************************************************************************************************
 */
 
+/*
+ * File    : PRINTS.H
+ * Version : 0.0.0.2
+ * Author  : Joshua Fain
+ * Target  : ATMega1280
+ * License : MIT
+ * Copyright (c) 2020
+ * 
+ * Interface for some print functions used to print strings and unsigned
+ * integers in decimal, binary, and hex formats.
+ */
 
 #include <stdint.h>
 #include <avr/io.h>
-#include "lcd_base.h"
-#include "usart.h"
-#include "prints.h"
 #include <util/delay.h>
+#include "lcd_base.h"
+#include "prints.h"
+
 
 
 

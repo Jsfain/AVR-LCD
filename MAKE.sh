@@ -17,7 +17,7 @@ mkdir -p -v $buildDir
 
 t=0.25
 # -g = debug, -Os = Optimize Size
-Compile=(avr-gcc -Wall -g -Os -I "includes/gen" -I "includes/lcd" -mmcu=atmega1280 -c -o)
+Compile=(avr-gcc -Wall -g -Os -I "includes/gen" -I "includes/lcd" -DF_CPU=16000000 -mmcu=atmega1280 -c -o)
 Link=(avr-gcc -Wall -g -mmcu=atmega1280 -o)
 IHex=(avr-objcopy -j .text -j .data -O ihex)
 
@@ -78,22 +78,22 @@ else
 fi
 
 
-echo -e "\n\r>> COMPILE: "${Compile[@]}" "$buildDir"/usart.o "$genDir"/usart.c"
-"${Compile[@]}" $buildDir/usart.o $genDir/usart.c
+echo -e "\n\r>> COMPILE: "${Compile[@]}" "$buildDir"/usart0.o "$genDir"/usart0.c"
+"${Compile[@]}" $buildDir/usart0.o $genDir/usart0.c
 status=$?
 sleep $t
 if [ $status -gt 0 ]
 then
-    echo -e "error compiling USART.C"
+    echo -e "error compiling USART0.C"
     echo -e "program exiting with code $status"
     exit $status
 else
-    echo -e "Compiling USART.C successful"
+    echo -e "Compiling USART0.C successful"
 fi
 
 
-echo -e "\n\r>> LINK: "${Link[@]}" "$buildDir"/lcd_test.elf "$buildDir"/lcd_test.o  "$buildDir"/lcd_base.o  "$buildDir"/lcd_sf.o  "$buildDir"/usart.o "$buildDir"/prints.o "
-"${Link[@]}" $buildDir/lcd_test.elf $buildDir/lcd_test.o $buildDir/lcd_base.o $buildDir/lcd_sf.o $buildDir/usart.o $buildDir/prints.o
+echo -e "\n\r>> LINK: "${Link[@]}" "$buildDir"/lcd_test.elf "$buildDir"/lcd_test.o  "$buildDir"/lcd_base.o  "$buildDir"/lcd_sf.o  "$buildDir"/usart0.o "$buildDir"/prints.o "
+"${Link[@]}" $buildDir/lcd_test.elf $buildDir/lcd_test.o $buildDir/lcd_base.o $buildDir/lcd_sf.o $buildDir/usart0.o $buildDir/prints.o
 status=$?
 sleep $t
 if [ $status -gt 0 ]

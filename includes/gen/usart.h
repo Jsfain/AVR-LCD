@@ -48,8 +48,9 @@
 */
 
 // Specify clock frequency of target device.
+#ifndef F_CPU
 #define F_CPU   16000000UL
-
+#endif //F_CPU
 
 
 // Define decimal-based baud rate to be used by USART0.

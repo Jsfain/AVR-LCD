@@ -3,22 +3,27 @@ clear
 #directory to store build/compiled files
 buildDir=../untracked/build
 
-#directory for source files
-sourceDir=source
+#directory for avr-sdcard source files
+lcdDir=source/lcd
+
+#directory for avr-general source files
+genDir=source/gen
+
+#directory for test files
+testDir=test
 
 #make build directory if it doesn't exist
 mkdir -p -v $buildDir
 
-
 t=0.25
 # -g = debug, -Os = Optimize Size
-Compile=(avr-gcc -Wall -g -Os -mmcu=atmega1280 -c -o)
+Compile=(avr-gcc -Wall -g -Os -I "includes/gen" -I "includes/lcd" -mmcu=atmega1280 -c -o)
 Link=(avr-gcc -Wall -g -mmcu=atmega1280 -o)
 IHex=(avr-objcopy -j .text -j .data -O ihex)
 
 
-echo -e ">> COMPILE: "${Compile[@]}" "$buildDir"/lcd_test.o " $sourceDir"/lcd_test.c"
-"${Compile[@]}" $buildDir/lcd_test.o $sourceDir/lcd_test.c
+echo -e ">> COMPILE: "${Compile[@]}" "$buildDir"/lcd_test.o " $testDir"/lcd_test.c"
+"${Compile[@]}" $buildDir/lcd_test.o $testDir/lcd_test.c
 status=$?
 sleep $t
 if [ $status -gt 0 ]
@@ -31,8 +36,8 @@ else
 fi
 
 
-echo -e ">> COMPILE: "${Compile[@]}" "$buildDir"/lcd_base.o " $sourceDir"/lcd_base.c"
-"${Compile[@]}" $buildDir/lcd_base.o $sourceDir/lcd_base.c
+echo -e "\n\r>> COMPILE: "${Compile[@]}" "$buildDir"/lcd_base.o " $lcdDir"/lcd_base.c"
+"${Compile[@]}" $buildDir/lcd_base.o $lcdDir/lcd_base.c
 status=$?
 sleep $t
 if [ $status -gt 0 ]
@@ -45,8 +50,8 @@ else
 fi
 
 
-echo -e ">> COMPILE: "${Compile[@]}" "$buildDir"/lcd_sf.o " $sourceDir"/lcd_sf.c"
-"${Compile[@]}" $buildDir/lcd_sf.o $sourceDir/lcd_sf.c
+echo -e "\n\r>> COMPILE: "${Compile[@]}" "$buildDir"/lcd_sf.o " $lcdDir"/lcd_sf.c"
+"${Compile[@]}" $buildDir/lcd_sf.o $lcdDir/lcd_sf.c
 status=$?
 sleep $t
 if [ $status -gt 0 ]
@@ -59,8 +64,8 @@ else
 fi
 
 
-echo -e "\n\r>> COMPILE: "${Compile[@]}" "$buildDir"/prints.o "$sourceDir"/prints.c"
-"${Compile[@]}" $buildDir/prints.o $sourceDir/prints.c
+echo -e "\n\r>> COMPILE: "${Compile[@]}" "$buildDir"/prints.o "$genDir"/prints.c"
+"${Compile[@]}" $buildDir/prints.o $genDir/prints.c
 status=$?
 sleep $t
 if [ $status -gt 0 ]
@@ -73,8 +78,8 @@ else
 fi
 
 
-echo -e "\n\r>> COMPILE: "${Compile[@]}" "$buildDir"/usart.o "$sourceDir"/usart.c"
-"${Compile[@]}" $buildDir/usart.o $sourceDir/usart.c
+echo -e "\n\r>> COMPILE: "${Compile[@]}" "$buildDir"/usart.o "$genDir"/usart.c"
+"${Compile[@]}" $buildDir/usart.o $genDir/usart.c
 status=$?
 sleep $t
 if [ $status -gt 0 ]

@@ -40,10 +40,10 @@
 
 #include <stdint.h>
 #include <avr/io.h>
-#include "../includes/lcd_base.h"
-#include "../includes/lcd_sf.h"
-#include "../includes/usart.h"
-#include "../includes/prints.h"
+#include "lcd_base.h"
+#include "lcd_sf.h"
+#include "usart.h"
+#include "prints.h"
 #include <util/delay.h>
 
 

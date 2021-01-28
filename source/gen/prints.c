@@ -39,8 +39,8 @@
 
 #include <stdint.h>
 #include <avr/io.h>
-#include "../includes/prints.h"
-#include "../includes/usart.h"
+#include "prints.h"
+#include "usart.h"
 
 
 /*

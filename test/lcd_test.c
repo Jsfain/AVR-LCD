@@ -2,10 +2,10 @@
 ***********************************************************************************************************************
 *                                               TESTING FOR AVR-LCD MODULE
 *
-* File    : LCD_TEST.C
-* Author  : Joshua Fain
-* Target  : ATMega1280
-* LCD     : Gravitech 20x4 LCD using HD44780 LCD controller
+* File         : LCD_TEST.C
+* Author       : Joshua Fain
+* Host Target  : ATMega1280
+* LCD          : Gravitech 20x4 LCD using HD44780 LCD controller
 *
 *
 * DESCRIPTION:
@@ -45,10 +45,10 @@
 
 #include <stdint.h>
 #include <avr/io.h>
-#include "../includes/prints.h"
-#include "../includes/usart.h"
-#include "../includes/lcd_base.h"
-#include "../includes/lcd_sf.h"
+#include "prints.h"
+#include "usart.h"
+#include "lcd_base.h"
+#include "lcd_sf.h"
 #include <util/delay.h>
 
 

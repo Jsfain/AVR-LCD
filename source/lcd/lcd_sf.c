@@ -75,7 +75,7 @@ uint8_t
 lcd_read_addr (void)
 {
   uint8_t addr;
-  addr = lcd_read_busy_and_addr();
+  addr = lcd_readBusyAndAddr();
   return (0b01111111 & addr); // removes busy flag.
 }
 
@@ -93,7 +93,7 @@ lcd_read_addr (void)
 
 void lcd_cursor_shift (uint8_t direction)
 {
-  lcd_cursor_display_shift (CURSOR_SHIFT | direction);
+  lcd_cursorDisplayShift (CURSOR_SHIFT | direction);
 }
 
 
@@ -110,5 +110,5 @@ void lcd_cursor_shift (uint8_t direction)
 
 void lcd_display_shift (uint8_t direction)
 {
-  lcd_cursor_display_shift (DISPLAY_SHIFT | direction);
+  lcd_cursorDisplayShift (DISPLAY_SHIFT | direction);
 }

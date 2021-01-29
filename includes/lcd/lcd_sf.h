@@ -52,14 +52,10 @@
 */
 
 
-void 
-lcd_cursor_shift (uint8_t direction);
+void lcd_cursor_shift (uint8_t direction);
 
-void 
-lcd_display_shift (uint8_t direction);
+void lcd_display_shift (uint8_t direction);
 
-uint8_t
-lcd_read_addr(void);
-
+uint8_t lcd_read_addr(void);
 
 #endif // LCD_SF_H

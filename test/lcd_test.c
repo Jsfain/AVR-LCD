@@ -53,7 +53,7 @@ int main(void)
   lcd_init();
 
   // Turn display and cursor on and blink the cursor 
-  lcd_display_ctrl (DISPLAY_ON | CURSOR_ON | BLINKING_ON);
+  lcd_displayCtrl (DISPLAY_ON | CURSOR_ON | BLINKING_ON);
 
 
   char c;                              // for input characters
@@ -72,25 +72,25 @@ int main(void)
     if (c == 127)
     {        
       // set display to decrement address counter (AC)
-      lcd_entry_mode_set (DECREMENT);
+      lcd_entryModeSet (DECREMENT);
 
       // get current value of AC
       addr = lcd_read_addr();
 
       // If AC adjust is needed, set it accordingly, else LEFT_SHIFT.
       if (0x40 == addr)
-        lcd_set_ddram_addr (0x13);
+        lcd_setAddrDDRAM (0x13);
       else if (0x14 == addr)
-        lcd_set_ddram_addr (0x53);
+        lcd_setAddrDDRAM (0x53);
       else if (0x54 == addr)
-        lcd_set_ddram_addr (0x27);
+        lcd_setAddrDDRAM (0x27);
       else
         lcd_cursor_shift (LEFT_SHIFT);
 
       // Write space to display to clear value, and reset to INCREMENT mode.
-      lcd_write_data (' ');
+      lcd_writeData (' ');
       lcd_cursor_shift(RIGHT_SHIFT);
-      lcd_entry_mode_set(INCREMENT);
+      lcd_entryModeSet(INCREMENT);
     }
 
     // if 'ENTER' is pressed, point AC to the first address of the next line.
@@ -99,22 +99,22 @@ int main(void)
       addr = lcd_read_addr();
 
       if (addr >= 0x00 && addr <= 0x13)
-        lcd_set_ddram_addr (0x40);
+        lcd_setAddrDDRAM (0x40);
       else if (addr >= 0x14 && addr <= 0x27)
-        lcd_set_ddram_addr (0x54);
+        lcd_setAddrDDRAM (0x54);
       else if (addr >= 0x40 && addr <= 0x53)
-        lcd_set_ddram_addr (0x14);
+        lcd_setAddrDDRAM (0x14);
       else if (addr >= 0x54 && addr <= 0x67)
-        lcd_set_ddram_addr (0x00);
+        lcd_setAddrDDRAM (0x00);
     }
 
     // if ctrl + 'h', return home. 
     else if (c == 0x08)
-      lcd_return_home();
+      lcd_returnHome();
     
     // if ctrl + 'c', clear screen.
     else if (c == 0x03) 
-      lcd_clear_display();
+      lcd_clearDisplay();
 
     // if ctrl + 'd', shift display.
     else if (c == 0x04) 
@@ -137,11 +137,11 @@ int main(void)
         if (c == 0x44)
         {
           if (0x40 == addr)
-            lcd_set_ddram_addr(0x13);
+            lcd_setAddrDDRAM(0x13);
           else if (0x14 == addr)
-            lcd_set_ddram_addr(0x53);
+            lcd_setAddrDDRAM(0x53);
           else if (0x54 == addr)
-            lcd_set_ddram_addr(0x27);
+            lcd_setAddrDDRAM(0x27);
           else
             lcd_cursor_shift (LEFT_SHIFT);
         }
@@ -149,11 +149,11 @@ int main(void)
         else if (c == 0x43)
         {
           if (addr == 0x13)
-            lcd_set_ddram_addr(0x40);
+            lcd_setAddrDDRAM(0x40);
           else if (addr == 0x53)
-            lcd_set_ddram_addr(0x14);
+            lcd_setAddrDDRAM(0x14);
           else if (addr == 0x27)
-            lcd_set_ddram_addr(0x54);
+            lcd_setAddrDDRAM(0x54);
           else
             lcd_cursor_shift (RIGHT_SHIFT);
         }
@@ -163,16 +163,16 @@ int main(void)
     // print character to LCD display
     else 
     {
-      lcd_write_data(c);
+      lcd_writeData(c);
 
       // AC adjustments if at the start of a display line.
       addr = lcd_read_addr();
       if (addr == 0x14)
-        lcd_set_ddram_addr (0x40);
+        lcd_setAddrDDRAM (0x40);
       else if (addr == 0x40)
-        lcd_set_ddram_addr (0x54);
+        lcd_setAddrDDRAM (0x54);
       else if (addr == 0x54)
-        lcd_set_ddram_addr (0x14);
+        lcd_setAddrDDRAM (0x14);
     }
   
   } 

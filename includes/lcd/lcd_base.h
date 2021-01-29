@@ -25,33 +25,49 @@
  ******************************************************************************
  */
 
-
-// -------------- Control Port & PINS
-
-// The control port contains the 3 control PINS
-// REGISTER_SELECT (RS), READ_WRITE (R/W), and ENABLE (E).
-#define CTRL_PORT             PORTC
-#define REGISTER_SELECT       PC0
-#define READ_WRITE            PC1
-#define ENABLE                PC2
+/*
+ * ----------------------------------------------------------------------------
+ *                                                          CONTROL PORT & PINS
+ * 
+ * The control port contains the 3 control PINS - Register select, Read/Write,
+ * and Enable.
+ * 
+ * RS : Determines whether to access the data or instruction register.
+ *  0 - Data Register is selected
+ *  1 - Instruction Register is selected
+ * 
+ * RW : Determines whether operating in Read or Write mode.
+ *  0 = Write mode
+ *  1 = Read mode
+ * ----------------------------------------------------------------------------
+ */
 
 #define CTRL_PORT_DDR         DDRC
+#define CTRL_PORT             PORTC
+#define RS                    PC0                          /* Reg select */
+#define RW                    PC1                          /* Read/Write */
+#define EN                    PC2                          /* Enable */
 
-// REGISTER_SELECT
-#define DATA_REGISTER_SELECT  CTRL_PORT &= ~(1 << REGISTER_SELECT) // RS = 0
-#define INST_REGISTER_SELECT  CTRL_PORT |=  (1 << REGISTER_SELECT) // RS = 1
+// REGISTER SELECT
+#define DATA_REGISTER         CTRL_PORT &= ~(1 << RS)      /* RS = 0 */
+#define INST_REGISTER         CTRL_PORT |=  (1 << RS)      /* RS = 1 */
 
-// READ_WRITE
-#define WRITE_MODE            CTRL_PORT &= ~(1 << READ_WRITE) // R/W = 0
-#define READ_MODE             CTRL_PORT |=  (1 << READ_WRITE) // R/W = 1
+// READ/WRITE
+#define WRITE_MODE            CTRL_PORT &= ~(1 << RW)      /* RW = 0 */
+#define READ_MODE             CTRL_PORT |=  (1 << RW)      /* RW = 1 */
 
 // ENABLE
-#define ENABLE_LO             CTRL_PORT &= ~(1 << ENABLE) // E = 0
-#define ENABLE_HI             CTRL_PORT |=  (1 << ENABLE) // E = 1
+#define ENABLE_LO             CTRL_PORT &= ~(1 << EN)      /* EN = 0 */
+#define ENABLE_HI             CTRL_PORT |=  (1 << EN)      /* EN = 1 */
 
 
-
-// -------------- Data Port & PINS
+/*
+ * ----------------------------------------------------------------------------
+ *                                                             DATA PORT & PINS
+ * 
+ * Macros to define the data port and pins.
+ * ----------------------------------------------------------------------------
+ */
 
 #define DATA_PORT_DDR         DDRA
 #define DATA_PORT             PORTA
@@ -65,13 +81,27 @@
 #define DB7                   PA7
 
 
-
-// -------------- LCD Instruction Flags
-
-// These flags are used to select the instruction type
-// to execute.  Most of these typese have accompanying
-// instruction-sepecific settings as well that must
-// be specified.
+/*
+ * ----------------------------------------------------------------------------
+ *                                                             LCD INSTRUCTIONS
+ * 
+ * These are the data port instructions that can be issued to the LCDs 
+ * controller (HD44780U), meaning these are sent to the LCD on the DATA_PORT
+ * pins. With the exception of CLEAR_DISPLAY and RETURN_HOME, when an 
+ * instruction is sent to the LCD the setting of bits in positions less than
+ * the instruction bit position are used to implement the specific settings 
+ * available to that instruction.  Therefore, the instruction bit is the 
+ * highest bit in the instruction byte.
+ * 
+ * Notes : (1) The specific settings available to each instruction are provided
+ *             in the macro definitions immediately below this section, i.e. in
+ *             the INSTRUCTION SETTINGS section.
+ * 
+ *         (2) There are three more instructions in addition to those here, but
+ *             these are determined by the settings of RS and RW in the
+ *             CTRL_PORT.
+ * ----------------------------------------------------------------------------
+ */
 
 #define CLEAR_DISPLAY         0x01
 #define RETURN_HOME           0x02
@@ -83,8 +113,17 @@
 #define SET_DDRAM_ADDR        0x80
 
 
-
-// -------------- LCD Instruction-Specific Setting Flags
+/*
+ * ----------------------------------------------------------------------------
+ *                                                     LCD INSTRUCTION SETTINGS
+ * 
+ * These macro definitions are the options available to the DATA PORT 
+ * instructions defined above.
+ *  
+ * Notes : Only use the settings available to a specific instruction, as
+ *         indicated by the comment above each settings grouping.
+ * ----------------------------------------------------------------------------
+ */
 
 // ENTRY_MODE_SET
 #define INCREMENT             0x02
@@ -114,15 +153,29 @@
 #define FONT_5x8              0x00
 
 
-// Errors
+/*
+ * ----------------------------------------------------------------------------
+ *                                                      INSTRUCTION ERROR FLAGS
+ * 
+ * Errors flags returned by the instruction functions
+ * ----------------------------------------------------------------------------
+ */
+
 #define LCD_INSTR_SUCCESS     0x00
-#define INVALID_ARGUMENT      0x01
+#define INVALID_ARG           0x01
 
 
-// Busy error codes returned by lcd_wait_busy();
+/*
+ * ----------------------------------------------------------------------------
+ *                                                             BUSY ERROR FLAGS
+ * 
+ * Errors flags returned by lcd_waitBusy(). These are used in conjuction with
+ * the instruction error flags above.
+ * ----------------------------------------------------------------------------
+ */
+
 #define BUSY_RESET_SUCCESS    0x02
 #define BUSY_RESET_TIMEOUT    0x04
-
 
 
 /*
@@ -135,29 +188,36 @@
   * ---------------------------------------------------------------------------
   *                                                          INITIALIZE THE LCD
   * 
-  * Description : This is the 'Initializing by Instruction' routine that must 
-  *               be executed for 8-bit mode the power supply conditions for 
-  *               operating the internal reset circuit are not met when 
-  *               powering up.  
+  * Description : The 'Initializing by Instruction' routine - 8-bit mode 
+  *               version. This must be executed if the power supply conditions
+  *               for operating the internal reset circuit are not met when 
+  *               powering up.
+  * 
+  * Arguments   : void
+  * 
+  * Returns     : void
   * ---------------------------------------------------------------------------
   */
 
-void lcd_init(void);
+void lcd_init (void);
 
 
-// *******************     LCD Basic Instruction Functions     ****************
-
+// *******************   LCD Data Port Instruction Functions   ****************
 
 /* 
  * ----------------------------------------------------------------------------
- *                                                   CLEAR LCD SCREEN / DISPLAY
+ *                                                            CLEAR LCD DISPLAY
  * 
- * Description : Clears the display and sets DDRAM address to 0 in address 
+ * Description : Clears the display and sets DDRAM address to 0 in the address 
  *               counter.
+ * 
+ * Arguments   : void
+ * 
+ * Returns     : void
  * ----------------------------------------------------------------------------
  */
 
-void lcd_clear_display (void);
+void lcd_clearDisplay (void);
 
 
 /* 
@@ -166,274 +226,299 @@ void lcd_clear_display (void);
  * 
  * Description : Sets DDRAM address to 0 in the address counter. Returns 
  *               dispaly to original position. DDRAM contents are not changed.
+ * 
+ * Arguments   : void
+ * 
+ * Returns     : void
  * ----------------------------------------------------------------------------
  */
 
-void lcd_return_home (void);
+void lcd_returnHome (void);
 
 
 /* 
  * ----------------------------------------------------------------------------
- *                                       SET CURSOR DIRECTION and DISPLAY SHIFT
+ *                                                               ENTRY MODE SET
  * 
- * Description : Sets the direction the cursor moves and specifies whether 
- *               display will shift. These operations will be performed during
- *               data writes and reads.
+ * Description : The ENTRY MODE SET instruction is used to set the direction
+ *               the cursor moves and specifies whether the display will shift.
+ *               These will be performed during data writes and reads.
  * 
- * Argument    : setting     byte to hold the settings of the instruction-
- *                           specific bits to send with the ENTRY_MODE_SET 
- *                           instruction. The available settings are listed 
- *                           below.
+ * Argument    : setting     The settings of the instruction-specific bits to 
+ *                           send with the ENTRY_MODE_SET instruction. The 
+ *                           available settings are listed below. The setting
+ *                           flags should be OR'd.
  * 
- * Settings    : INCREMENT or DECREMENT     Specifies whether the cursor will
- *                                          increment or decrement by 1 upon a
- *                                          data read or write.
+ * Settings    : INCREMENT or           Specifies whether the cursor will
+ *               DECREMENT              increment or decrement by 1 upon a
+ *                                      data read or write.
  * 
- *               DISPLAY_SHIFT_DATA         Setting this flag will cause the 
- *                                          display to shift upon data read or 
- *                                          write.
+ *               DISPLAY_SHIFT_DATA     Setting this flag will cause the 
+ *                                      display to shift upon data read or 
+ *                                      write.
  * 
- * Returns     : LCD Error code
+ * Returns     : LCD Error code. INVALID_ARG will be returned if the value of 
+ *               settings value is >= ENTRY_MODE_SET. Otherwise 
+ *               LCD_INSTR_SUCCESS is returned.
  * ----------------------------------------------------------------------------
  */
 
-uint8_t lcd_entry_mode_set (uint8_t setting);
+uint8_t lcd_entryModeSet (uint8_t setting);
 
 
 /* 
  * ----------------------------------------------------------------------------
- *                                      DISPLAY ON/OFF, CURSOR ON/OFF, BLINKING
+ *                                                       DISPLAY ON/OFF CONTROL
  * 
- * Description : Turns the display ON or OFF. Turns the cursor ON or OFF. Turns
- *               cursor blinking ON or OFF.
+ * Description : The display ON or OFF control instruction (DISPLAY_CTRL) is 
+ *               used to turn the display ON or OFF, to turn the cursor ON or 
+ *               OFF, and to specify whether cursor blinking will be ON or OFF.
  * 
- * Argument    : setting     byte to hold the settings of the instruction-
- *                           specific bits to send with the DISPLAY_CTRL
- *                           instruction. The available settings are listed 
- *                           below.
+ * Argument    : setting     The settings of the instruction-specific bits to 
+ *                           send with the DISPLAY_CTRL instruction. The 
+ *                           available settings are listed below. The setting
+ *                           flags should be OR'd.
  * 
- * Settings:     DISPLAY_ON or DISPLAY_OFF     Specify whether display will be
- *                                             ON or OFF.
- *              
- *               CURSOR_ON or CURSOR_OFF       Specify whether cursor will be
- *                                             ON or OFF. 
- *              
- *               BLINKING_ON or BLINKING_OFF   Specify whether cursor blinking
- *                                             will be turned ON or OFF.
+ * Settings    : DISPLAY_ON or      Specify whether display will be ON or OFF.
+ *               DISPLAY_OFF
  * 
- * Returns     : LCD Error code
+ *               CURSOR_ON or       Specify whether cursor will be ON or OFF. 
+ *               CURSOR_OFF
+ * 
+ *               BLINKING_ON or     Specify if cursor blinking is ON or OFF.
+ *               BLINKING_OFF                       
+ * 
+ * Returns     : LCD Error code. INVALID_ARG will be returned if the value of 
+ *               settings value is >= DISPLAY_CTRL. Otherwise LCD_INSTR_SUCCESS
+ *               is returned.
  * ----------------------------------------------------------------------------
  */
 
-uint8_t lcd_display_ctrl (uint8_t setting);
+uint8_t lcd_displayCtrl (uint8_t setting);
 
 
 /* 
  * ----------------------------------------------------------------------------
- *                                                       MOVE CURSOR or DISPLAY
+ *                                                      CURSOR or DISPLAY SHIFT
  * 
- * Description : Immediately moves the cursor or the display to the right or 
+ * Description : Immediately moves the cursor or display to the right or left 
  *               left depending on the settings passed as the argument. It does
  *               not require data read or write in order to move the cursor or
  *               display, and it does not matter what the ENTRY_MODE_SET 
  *               settings are.
  * 
- * Argument    : setting     byte to hold the settings of the instruction-
- *                           specific bits to send with the 
- *                           CURSOR_DISPLAY_SHIFT instruction. The available 
- *                           settings are listed below.
+ * Argument    : setting     The settings of the instruction-specific bits to 
+ *                           send with the CURSOR_DISPLAY_SHIFT instruction.
+ *                           The available settings are listed below. The
+ *                           setting flags should be OR'd.
  * 
- * Settings    : CURSOR_SHIFT or DISPLAY_SHIFT     Specify whether display or 
- *                                                 cursor will be shifted. 
+ * Settings    : CURSOR_SHIFT or     Specify display or cursor shift.
+ *               DISPLAY_SHIFT
  * 
- *             : RIGHT_SHIFT or LEFT_SHIFT         Specify which direction the 
- *                                                 cursor or display will be 
- *                                                 shifted.
+ *             : RIGHT_SHIFT or      Specify direction of shift.
+ *               LEFT_SHIFT          
  *
- * Returns     : LCD Error code
+ * Returns     : LCD Error code. INVALID_ARG will be returned if the value of 
+ *               settings value is >= CURSOR_DISPLAY_SHIFT. Otherwise 
+ *               LCD_INSTR_SUCCESS is returned.
  * ----------------------------------------------------------------------------
  */
 
-uint8_t lcd_cursor_display_shift (uint8_t setting);
+uint8_t lcd_cursorDisplayShift (uint8_t setting);
 
 
 /* 
  * ----------------------------------------------------------------------------
- *                                   DATA LENGTH, DISPLAY LINES, CHARACTER FONT
+ *                                                                 FUNCTION SET
  * 
- * Description : Sets the interface data length. Sets the number of display
- *               lines. Sets the character font.
+ * Description : The FUNCTION SET instruction is used to set the interface 
+ *               data length (4 or 8 bits), to set the number of display lines,
+ *               and set the character font.
  * 
- * Argument    : setting     byte to hold the settings of the instruction-
- *                           specific bits to send with the FUNCTION_SET
- *                           instruction. The available settings are listed 
- *                           below.
+ * Argument    : setting     The settings of the instruction-specific bits to 
+ *                           send with the FUNCTION_SET instruction. The 
+ *                           available settings are listed below. The setting
+ *                           flags should be OR'd.
  * 
- * Settings    : DATA_LENTH_8_BITS or      Operate in 8-bit or 4-bit mode.
+ * Settings    : DATA_LENTH_8_BITS or     Operate in 8-bit or 4-bit mode.
  *               DATA_LENTH_4_BITS                      
  *  
- *               TWO_LINES or ONE_LINE     Specify number of display lines.
+ *               TWO_LINES or             Specify number of display lines.
+ *               ONE_LINE 
  * 
- *               FONT_5x10 or FONT_5x8     Specify whether characters are 5x10
- *                                         or 5x8 dots.
+ *               FONT_5x10 or             Specify 5x10 or 5x8 dot characters.
+ *               FONT_5x8                
  * 
- * Returns     : LCD Error code
+ * Returns     : LCD Error code. INVALID_ARG will be returned if the value of 
+ *               settings value is >= FUNCTION_SET. Otherwise LCD_INSTR_SUCCESS
+ *               is returned.
  * ----------------------------------------------------------------------------
  */
 
-uint8_t lcd_function_set (uint8_t setting);
+uint8_t lcd_functionSet (uint8_t setting);
 
 
 /* 
  * ----------------------------------------------------------------------------
  *                                                            SET CGRAM ADDRESS
  * 
- * Description : Set the CGRAM address. CGRAM data is sent and received after 
- *               sending this instruction.
+ * Description : The 'set CGRAM address' instruction is used to set the address
+ *               of the Character Generator RAM. CGRAM data is sent and 
+ *               received after sending this instruction.
  * 
- * Argument    : acg     byte which holds the 6-bit address the CGRAM pointer 
- *                       will point to. The lowest 6 bits in the acg argument 
- *                       will be the address.
+ * Argument    : acg     byte specifying the address the CGRAM pointer will 
+ *                       point to. The lowest 6 bits in the acg argument are
+ *                       the address.
  * 
- * Returns     : LCD Error code
+ * Returns     : LCD Error code. INVALID_ARG will be returned if the value of 
+ *               settings value is >= SET_CGRAM_ADDR. Otherwise 
+ *               LCD_INSTR_SUCCESS is returned.
  * ----------------------------------------------------------------------------
  */
 
-uint8_t lcd_set_cgram_addr (uint8_t acg);
+uint8_t lcd_setAddrCGRAM (uint8_t acg);
 
 
 /* 
  * ----------------------------------------------------------------------------
  *                                                            SET DDRAM ADDRESS
  * 
- * Description : Set the DDRAM address. DDRAM data is sent and received after 
+ * Description : The 'set DDRAM address' instruction is used to set the address
+ *               of the Display Data RAM. DDRAM data is sent and received after
  *               sending this instruction.
  *  
- * Argument    : add     byte which holds the 7-bit address the DDRAM pointer 
- *                       will point to. The lowest 7 bits in the add argument 
- *                       will be the address.
+ * Argument    : add     byte specifying the address the DDRAM pointer will 
+ *                       point to. The lowest 7 bits in the add argument are
+ *                       the address.
  *
- * Returns     : LCD Error code
+ * Returns     : LCD Error code. INVALID_ARG will be returned if the value of 
+ *               settings value is >= SET_DDRAM_ADDR. Otherwise 
+ *               LCD_INSTR_SUCCESS is returned.
  * ----------------------------------------------------------------------------
  */
 
-uint8_t lcd_set_ddram_addr (uint8_t add);
+uint8_t lcd_setAddrDDRAM (uint8_t add);
 
+
+
+// *****************   LCD Control Port Instruction Functions   ***************
 
 /* 
  * ----------------------------------------------------------------------------
- *                                           READ BUSY FLAG and ADDRESS COUNTER
+ *                                                   READ BUSY FLAG and ADDRESS
  * 
- * Description : Reads the busy flag indicating internal operation is being 
- *               performed and also reads address counter.
+ * Description : Reads & returns the busy flag setting and the address counter.
  * 
  * Arguments   : void
  * 
- * Returns     : The MSB (bit 7) is the Busy Flag. This will be set to 1 if the
- *               controller is busy. The lowest 7 bits (bits 0 to 6) will 
- *               specify the value of the address counter.
+ * Returns     : Byte
+ *               [0:6] = The current value in the address counter.
+ *               [7]   = Busy Flag. Set to 1 if the controller is busy. 
  * ----------------------------------------------------------------------------
  */
 
-uint8_t lcd_read_busy_and_addr (void);
+uint8_t lcd_readBusyAndAddr (void);
 
 
 /* 
  * ----------------------------------------------------------------------------
  *                                                 WRITE DATA TO DDRAM or CGRAM
  * 
- * Description : Write data to the DDRAM or CGRAM at location pointed to by the
- *               address counter.  Which RAM is written to will be determined 
- *               by the most recent "set address" instruction that was sent 
- *               (i.e. SET_DDRAM_ADDR or SET_CGRAM_ADDR).
+ * Description : Write data to the DDRAM's or CGRAM's location pointed to by
+ *               the address counter. Which RAM is written to will be 
+ *               determined by the most recent "set address" instruction that 
+ *               was sent (i.e. SET_DDRAM_ADDR or SET_CGRAM_ADDR).
  * 
- * Arguments   : data     byte of data that will be written to the DDRAM or 
- *                        CGRAM at the location pointed to by the 
- *                        address counter.
+ * Arguments   : data     data byte that will be written to the DDRAM or 
+ *                        CGRAM at the location pointed to by the address 
+ *                        counter.
  * 
  * Returns     : void
  * ----------------------------------------------------------------------------
 */
 
-void lcd_write_data (uint8_t data);
+void lcd_writeData (uint8_t data);
 
 
 /* 
  * ----------------------------------------------------------------------------
  *                                                READ DATA FROM DDRAM or CGRAM
  * 
- * Description : Read data from the DDRAM or CGRAM at the location pointed to 
- *               by the address counter. Which RAM is written to will be 
+ * Description : Read data from the DDRAM's or CGRAM's location pointed to by 
+ *               the address counter. Which RAM is read from to will be 
  *               determined by the most recent "set address" instruction that 
  *               was sent (i.e. SET_DDRAM_ADDR or SET_CGRAM_ADDR).
  * 
  * Arguments  : void
  * 
- * Returns    : the value of the byte in either CGRAM or DDRAM, pointed at by
+ * Returns    : byte in either CGRAM or DDRAM at the address pointed at by
  *              the address counter.
  * ----------------------------------------------------------------------------
  */
 
-uint8_t lcd_read_data (void);
+uint8_t lcd_readData (void);
 
 
 
-// ********************     Required helper functions     *********************
+// ************************   Some helper functions   *************************
 
 /* 
  * ----------------------------------------------------------------------------
  *                                                  WAIT FOR BUSY FLAG TO RESET
  * 
- * Description : Use this function to poll the busy flag and returns after it 
- *               has been reset.
+ * Description : Use this function to poll the busy flag. This function will
+ *               return once it detects the busy flag is no longer set.
  * 
  * Arguments   : void
  * 
- * Returns     : Error code.  BUSY_RESET_SUCCESS if the busy flag was found to
- *               be reset and the interface is ready to receive the next 
- *               command.  BUSY_RESET_TIMEOUT if the flag does not reset after 
- *               a certain timeout period.
+ * Returns     : Busy Error Flag. BUSY_RESET_SUCCESS if the busy flag was found
+ *               to be reset and the LCD's controller is ready to receive the 
+ *               next command. BUSY_RESET_TIMEOUT if the flag does not reset 
+ *               after a set timeout period.
  * ----------------------------------------------------------------------------
 */
 
-uint8_t lcd_wait_busy (void);
+uint8_t lcd_waitBusy (void);
 
 
 /* 
  * ----------------------------------------------------------------------------
  *                                                             PULSE ENABLE PIN
  * 
- * Description : In order to execute an instructions the enable pin must 
- *               transition from high to low.  This function sets the enable 
- *               pin high and then low and so should be called once all the 
- *               other necessary pins have been set according to the desired 
- *               instruction and settings to execute.  
+ * Description : Pulses the enable pin.  
  * 
  * Arguments   : void
  * 
  * Returns     : void
+ * 
+ * Notes       : In order to execute an instruction the enable pin must
+ *               transition from high to low. This function performs this
+ *               operation by setting the enable pin high and then low. This 
+ *               function should be called once all the other necessary pins 
+ *               have been set according to the desired instruction and 
+ *               settings.
  * ----------------------------------------------------------------------------
  */
 
-void lcd_pulse_enable (void);
+void lcd_pulseEnable (void);
 
 
 /* 
  * ----------------------------------------------------------------------------
  *                                                      SEND INSTRUCTION TO LCD
  * 
- * Description : This function is called by the basic instruction functions to 
- *               actually set the necessary pins for the instruction according
- *               to the argument.
+ * Description : This function sets the necessary port pins for executing the
+ *               instructions and their settings. This function is called by 
+ *               all of the instruction functions.
  * 
- * Arguments   : cmd
+ * Arguments   : cmd     instruction and settings that are to be executed by
+ *                       the LCDs controller.
  * 
  * Returns     : void
  * ----------------------------------------------------------------------------
  */
 
-void lcd_send_instruction (uint8_t cmd);
-
+void lcd_sendInstruction (uint8_t cmd);
 
 
 /* 
@@ -448,7 +533,7 @@ void lcd_send_instruction (uint8_t cmd);
  * ----------------------------------------------------------------------------
  */
 
-void lcd_print_error(uint8_t err);
+void lcd_printError(uint8_t err);
 
 
 #endif // LCD_BASE_H

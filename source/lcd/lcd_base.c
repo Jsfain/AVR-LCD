@@ -18,7 +18,29 @@
 
 /*
  ******************************************************************************
- *                              FUNCTION PROTOTYPES
+ *                            "PRIVATE" FUNCTION
+ ******************************************************************************
+ */
+
+//
+// Called by all of the data port instruction functions to ensure the LCD's
+// controller is not busy and to set the control port to 'write mode' and
+// ensure the 'data register' has been selected.
+//
+void pvt_instrPreset (void)
+{
+  // ensure busy flag not set before proceeding
+  lcd_waitClearBusy();
+
+  // Set ctrl port pins
+  DATA_REGISTER;
+  WRITE_MODE;
+}
+
+
+/*
+ ******************************************************************************
+ *                                 FUNCTIONS
  ******************************************************************************
  */
 
@@ -39,18 +61,18 @@
 
 void lcd_init (void)
 {
-  // Set data direction for Data and Control ports
-  DATA_PORT_DDR = 0xFF;
+  // ensure enable is low
+  ENABLE_LO;
+  
+  // Set Data and Control port data direction to output 
+  DATA_DDR = 0xFF;
   CTRL_PORT_DDR = 0xFF;
 
-
-  // Set ctrl port
+  // Set ctrl port pins to necessary values
   DATA_REGISTER;
   WRITE_MODE;
-  ENABLE_LO;
 
-
-  // The busy flag should not be checked until after these 
+  // Busy flag should not be checked until after these
   // three FUNCTION_SET instructions have been sent.
   _delay_ms(16);
   lcd_sendInstruction (FUNCTION_SET | DATA_LENGTH_8_BITS);
@@ -59,16 +81,11 @@ void lcd_init (void)
   _delay_ms(0.2);
   lcd_sendInstruction (FUNCTION_SET | DATA_LENGTH_8_BITS);
 
-
-  // Busy flag can now be checked, so can
-  // now call the instruction functions.
+  // Busy flag can be checked, so now the instruction functions can be used.
   lcd_functionSet (DATA_LENGTH_8_BITS | TWO_LINES | FONT_5x8);
   lcd_displayCtrl (DISPLAY_OFF | CURSOR_OFF | BLINKING_OFF);
   lcd_clearDisplay();
-  lcd_entryModeSet (INCREMENT);
-
-  print_str("\n\r post init()");
-  
+  lcd_entryModeSet (INCREMENT);  
 }
 
 
@@ -89,9 +106,7 @@ void lcd_init (void)
 
 void lcd_clearDisplay (void)
 {
-  lcd_waitBusy();
-  DATA_REGISTER;
-  WRITE_MODE;
+  pvt_instrPreset();
   lcd_sendInstruction (CLEAR_DISPLAY);
 }
 
@@ -100,8 +115,8 @@ void lcd_clearDisplay (void)
  * ----------------------------------------------------------------------------
  *                                                                  RETURN HOME
  * 
- * Description : Sets DDRAM address to 0 in the address counter. Returns 
- *               dispaly to original position. DDRAM contents are not changed.
+ * Description : Sets DDRAM address to 0 in the address counter, returning the 
+ *               dispaly cursor to the 0 position. Display is not changed.
  * 
  * Arguments   : void
  * 
@@ -111,9 +126,7 @@ void lcd_clearDisplay (void)
 
 void lcd_returnHome (void)
 {
-  lcd_waitBusy();
-  DATA_REGISTER;
-  WRITE_MODE;
+  pvt_instrPreset();
   lcd_sendInstruction (RETURN_HOME);
 }
 
@@ -150,9 +163,7 @@ uint8_t lcd_entryModeSet (uint8_t setting)
   if (setting >= ENTRY_MODE_SET)
     return INVALID_ARG;
 
-  lcd_waitBusy();
-  DATA_REGISTER;
-  WRITE_MODE;
+  pvt_instrPreset();
   lcd_sendInstruction (ENTRY_MODE_SET | setting);
   return LCD_INSTR_SUCCESS;
 }
@@ -192,9 +203,7 @@ lcd_displayCtrl (uint8_t setting)
   if (setting >= DISPLAY_CTRL)
     return INVALID_ARG;
 
-  lcd_waitBusy();
-  DATA_REGISTER;
-  WRITE_MODE;
+  pvt_instrPreset();
   lcd_sendInstruction (DISPLAY_CTRL | setting);
   return LCD_INSTR_SUCCESS;
 }
@@ -232,9 +241,7 @@ uint8_t lcd_cursorDisplayShift (uint8_t setting)
   if (setting >= CURSOR_DISPLAY_SHIFT)
     return INVALID_ARG;
 
-  lcd_waitBusy();
-  DATA_REGISTER;
-  WRITE_MODE;
+  pvt_instrPreset();
   lcd_sendInstruction (CURSOR_DISPLAY_SHIFT | setting);
   return LCD_INSTR_SUCCESS;
 }
@@ -273,9 +280,7 @@ uint8_t lcd_functionSet (uint8_t setting)
   if (setting >= FUNCTION_SET)
     return INVALID_ARG;
 
-  lcd_waitBusy();
-  DATA_REGISTER;
-  WRITE_MODE;
+  pvt_instrPreset();
   lcd_sendInstruction (FUNCTION_SET | setting);
   return LCD_INSTR_SUCCESS;
 }
@@ -304,9 +309,7 @@ uint8_t lcd_setAddrCGRAM (uint8_t acg)
   if (acg >= SET_CGRAM_ADDR)
     return INVALID_ARG;
 
-  lcd_waitBusy();
-  DATA_REGISTER;
-  WRITE_MODE;
+  pvt_instrPreset();
   lcd_sendInstruction (SET_CGRAM_ADDR | acg);
   return LCD_INSTR_SUCCESS;
 }
@@ -335,13 +338,10 @@ uint8_t lcd_setAddrDDRAM (uint8_t add)
   if (add >= SET_DDRAM_ADDR)
     return INVALID_ARG;
 
-  lcd_waitBusy();
-  DATA_REGISTER;
-  WRITE_MODE;
+  pvt_instrPreset();
   lcd_sendInstruction (SET_DDRAM_ADDR | add);
   return LCD_INSTR_SUCCESS;
 }
-
 
 
 // *****************   LCD Control Port Instruction Functions   ***************
@@ -362,15 +362,30 @@ uint8_t lcd_setAddrDDRAM (uint8_t add)
 
 uint8_t lcd_readBusyAndAddr (void)
 {
-  uint8_t busy_addr;
-  DDRA = 0;
+  uint8_t busy_addr;       
+
+  // data pins set to input
+  DATA_DDR = 0;
+
+  //
+  // Set control port pins. For control port instructions, these settings
+  // are the instruction which is "sent" when the ENABLE pin goes high.  
+  //
   DATA_REGISTER;
   READ_MODE;
+
+  // 'send' instruction
   ENABLE_HI;
+
+  // wait and read in pin values
   _delay_ms(1);
-  busy_addr = PINA;
+  busy_addr = DATA_PIN;
   _delay_ms(1);
-  DDRA = 0xFF;
+
+  // data pins set to input
+  DATA_DDR = 0xFF;
+  
+  // return the current busy flag and address counter
   return busy_addr;
 }
 
@@ -392,13 +407,19 @@ uint8_t lcd_readBusyAndAddr (void)
  * ----------------------------------------------------------------------------
 */
 
-
 void lcd_writeData (uint8_t data)
 {
-  lcd_waitBusy();
+  // ensure LCD controller is not busy
+  lcd_waitClearBusy();
+
+  // set control port pins
   INST_REGISTER;
   WRITE_MODE;
+
+  // write to data port
   DATA_PORT = data;
+  
+  // wait and pulse enable pin to send the data.
   _delay_ms(1);
   lcd_pulseEnable();
 }
@@ -423,17 +444,35 @@ void lcd_writeData (uint8_t data)
 uint8_t lcd_readData (void)
 {
   uint8_t data = 0;
-  lcd_waitBusy();
-  DDRA = 0;
+
+  // ensure LCD controller is not busy
+  lcd_waitClearBusy();
+
+  // data pins set to input
+  DATA_DDR = 0;
+
+  //
+  // Set control port pins. For control port instructions, these settings
+  // are the instruction which is "sent" when the ENABLE pin goes high.  
+  //
   INST_REGISTER;
   READ_MODE;
+
+  // 'send' the instruction
+  _delay_ms(5);
+  ENABLE_HI;
+
+  // wait and read in pin values
   _delay_ms(1);
-  lcd_pulseEnable();
-  data = PINA;
-  DDRA = 0xFF;
+  data = DATA_PIN;
+  _delay_ms(1);
+
+  // set data pins back to input
+  DATA_DDR = 0xFF;
+
+  // return the CGRAM or DDRAM data
   return data;
 }
-
 
 
 // ************************   Some helper functions   *************************
@@ -443,38 +482,30 @@ uint8_t lcd_readData (void)
  *                                                  WAIT FOR BUSY FLAG TO RESET
  * 
  * Description : Use this function to poll the busy flag. This function will
- *               return once it detects the busy flag is no longer set.
+ *               return once it detects the busy flag is no longer set or 
+ *               a timeout has been reached.
  * 
  * Arguments   : void
  * 
- * Returns     : Busy Error Flag. BUSY_RESET_SUCCESS if the busy flag was found
- *               to be reset and the LCD's controller is ready to receive the 
- *               next command. BUSY_RESET_TIMEOUT if the flag does not reset 
- *               after a set timeout period.
+ * Returns     : On of the Busy Error Flags. BUSY_RESET_SUCCESS is returned if
+ *               the busy flag was found to be reset and the LCD's controller 
+ *               is ready to receive the next command. BUSY_RESET_TIMEOUT if 
+ *               the flag does not reset after a set timeout period.
  * ----------------------------------------------------------------------------
 */
 
-uint8_t lcd_waitBusy (void)
+uint8_t lcd_waitClearBusy (void)
 {
-  DDRA = 0;
-  DATA_REGISTER;
-  READ_MODE;
-  _delay_ms(5);
-  ENABLE_HI;
-  uint8_t cnt = 0;
-  do
-    {
-      cnt++;
-      _delay_ms(1);
-      if (cnt > 254)
-        {
-          DDRA = 0xFF;
-          return BUSY_RESET_TIMEOUT;
-        }
-    } 
-  while (DATA_PORT & 0x80);
-  DDRA = 0xFF;
-  return BUSY_RESET_SUCCESS;
+  // loop to poll the DATA_PIN to and check if busy flag has cleared
+  for (uint8_t timeout = 0; timeout < 0xFE; timeout++)
+  {
+    //delay between loop iterations
+    _delay_ms(1);
+    if ( !(lcd_readBusyAndAddr() & 0x80))
+      return BUSY_RESET_SUCCESS;
+  }
+  // busy flag NOT cleared
+  return BUSY_RESET_TIMEOUT;
 }
 
 
@@ -506,17 +537,16 @@ void lcd_pulseEnable (void)
 }
 
 
-
 /* 
  * ----------------------------------------------------------------------------
  *                                                      SEND INSTRUCTION TO LCD
  * 
  * Description : This function sets the necessary port pins for executing the
  *               instructions and their settings. This function is called by 
- *               all of the instruction functions.
+ *               all of the data port instruction functions.
  * 
- * Arguments   : cmd     instruction and settings that are to be executed by
- *                       the LCDs controller.
+ * Arguments   : instr     instruction and settings that are to be executed by
+ *                         the LCDs controller.
  * 
  * Returns     : void
  * ----------------------------------------------------------------------------
@@ -524,8 +554,10 @@ void lcd_pulseEnable (void)
 
 void lcd_sendInstruction (uint8_t inst)
 {
+  // set pins according to the instuction and settings
   DATA_PORT = inst;
   _delay_ms(0.2);
+  // 'send' the instruction and settings
   lcd_pulseEnable();
 }
 

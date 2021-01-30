@@ -52,9 +52,8 @@ int main(void)
   // Ensure LCD is initialized.
   lcd_init();
 
-  // Turn display and cursor on and blink the cursor 
+  // Turn display and cursor on and set cursor to blink 
   lcd_displayCtrl (DISPLAY_ON | CURSOR_ON | BLINKING_ON);
-
 
   char c;                              // for input characters
   uint8_t addr;                        // ddram address
@@ -75,37 +74,38 @@ int main(void)
       lcd_entryModeSet (DECREMENT);
 
       // get current value of AC
-      addr = lcd_read_addr();
+      addr = lcd_readAddr();
 
       // If AC adjust is needed, set it accordingly, else LEFT_SHIFT.
-      if (0x40 == addr)
-        lcd_setAddrDDRAM (0x13);
-      else if (0x14 == addr)
-        lcd_setAddrDDRAM (0x53);
-      else if (0x54 == addr)
-        lcd_setAddrDDRAM (0x27);
+
+      if (LINE_2_BEG == addr)
+        lcd_setAddrDDRAM (LINE_1_END);
+      else if (LINE_3_BEG == addr)
+        lcd_setAddrDDRAM (LINE_2_END);
+      else if (LINE_4_BEG == addr)
+        lcd_setAddrDDRAM (LINE_3_END);
       else
-        lcd_cursor_shift (LEFT_SHIFT);
+        lcd_leftShiftCursor();
 
       // Write space to display to clear value, and reset to INCREMENT mode.
       lcd_writeData (' ');
-      lcd_cursor_shift(RIGHT_SHIFT);
+      lcd_rightShiftCursor();
       lcd_entryModeSet(INCREMENT);
     }
 
     // if 'ENTER' is pressed, point AC to the first address of the next line.
     else if (c == '\r')
     {
-      addr = lcd_read_addr();
+      addr = lcd_readAddr();
 
-      if (addr >= 0x00 && addr <= 0x13)
-        lcd_setAddrDDRAM (0x40);
-      else if (addr >= 0x14 && addr <= 0x27)
-        lcd_setAddrDDRAM (0x54);
-      else if (addr >= 0x40 && addr <= 0x53)
-        lcd_setAddrDDRAM (0x14);
-      else if (addr >= 0x54 && addr <= 0x67)
-        lcd_setAddrDDRAM (0x00);
+      if (addr >= LINE_1_BEG && addr <= LINE_1_END)
+        lcd_setAddrDDRAM (LINE_2_BEG);
+      else if (addr >= LINE_3_BEG && addr <= LINE_3_END)
+        lcd_setAddrDDRAM (LINE_4_BEG);
+      else if (addr >= LINE_2_BEG && addr <= LINE_2_END)
+        lcd_setAddrDDRAM (LINE_3_BEG);
+      else if (addr >= LINE_4_BEG && addr <= LINE_4_END)
+        lcd_setAddrDDRAM (LINE_1_BEG);
     }
 
     // if ctrl + 'h', return home. 
@@ -118,7 +118,7 @@ int main(void)
 
     // if ctrl + 'd', shift display.
     else if (c == 0x04) 
-      lcd_display_shift (RIGHT_SHIFT);
+      lcd_rightShiftDisplay ();
 
     //
     // If right or left arrow is pressed then move cursor in that direction.
@@ -130,32 +130,32 @@ int main(void)
       c = usart_receive();
       if (c == 0x5B)
       {
-        addr = lcd_read_addr();
+        addr = lcd_readAddr();
         c = usart_receive();
 
         // Left arrow
         if (c == 0x44)
         {
-          if (0x40 == addr)
-            lcd_setAddrDDRAM(0x13);
-          else if (0x14 == addr)
-            lcd_setAddrDDRAM(0x53);
-          else if (0x54 == addr)
-            lcd_setAddrDDRAM(0x27);
+          if (LINE_2_BEG == addr)
+            lcd_setAddrDDRAM (LINE_1_END);
+          else if (LINE_3_BEG == addr)
+            lcd_setAddrDDRAM(LINE_2_END);
+          else if (LINE_4_BEG == addr)
+            lcd_setAddrDDRAM(LINE_3_END);
           else
-            lcd_cursor_shift (LEFT_SHIFT);
+            lcd_leftShiftCursor();
         }
         // right arrow
         else if (c == 0x43)
         {
-          if (addr == 0x13)
-            lcd_setAddrDDRAM(0x40);
-          else if (addr == 0x53)
-            lcd_setAddrDDRAM(0x14);
-          else if (addr == 0x27)
-            lcd_setAddrDDRAM(0x54);
+          if (addr == LINE_1_END)
+            lcd_setAddrDDRAM(LINE_2_BEG);
+          else if (addr == LINE_2_END)
+            lcd_setAddrDDRAM(LINE_3_BEG);
+          else if (addr == LINE_3_END)
+            lcd_setAddrDDRAM(LINE_4_BEG);
           else
-            lcd_cursor_shift (RIGHT_SHIFT);
+            lcd_rightShiftCursor();
         }
       }
     } 
@@ -166,15 +166,15 @@ int main(void)
       lcd_writeData(c);
 
       // AC adjustments if at the start of a display line.
-      addr = lcd_read_addr();
-      if (addr == 0x14)
-        lcd_setAddrDDRAM (0x40);
-      else if (addr == 0x40)
-        lcd_setAddrDDRAM (0x54);
-      else if (addr == 0x54)
-        lcd_setAddrDDRAM (0x14);
+      addr = lcd_readAddr();
+
+      if (addr == LINE_3_BEG)
+        lcd_setAddrDDRAM (LINE_2_BEG);
+      else if (addr == LINE_2_BEG)
+        lcd_setAddrDDRAM (LINE_4_BEG);
+      else if (addr == LINE_4_BEG)
+        lcd_setAddrDDRAM (LINE_3_BEG);
     }
-  
   } 
   while (1);
 

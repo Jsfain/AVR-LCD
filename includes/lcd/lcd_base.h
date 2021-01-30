@@ -1,8 +1,10 @@
 /*
- * File    : LCD_BASE.H
- * Author  : Joshua Fain
- * Target  : ATMega1280
- * LCD     : Gravitech 20x4 LCD using HD44780 LCD controller
+ * File        : LCD_BASE.H
+ * Author      : Joshua Fain
+ * Host Target : ATMega1280
+ * LCD         : Gravitech 20x4 LCD with built-in HD44780 controller
+ * License     : MIT
+ * Copyright (c) 2020, 2021
  *
  * Provides macros and basic function prototypes for interfacing with the LCD.
  * The functions here are used to implement the basic instructions available to
@@ -17,7 +19,7 @@
 #define LCD_BASE_H
 
 #include <avr/io.h>
-
+#include "lcd_addr.h"
 
 /*
  ******************************************************************************
@@ -27,7 +29,7 @@
 
 /*
  * ----------------------------------------------------------------------------
- *                                                          CONTROL PORT & PINS
+ *                                                                 CONTROL PORT
  * 
  * The control port contains the 3 control PINS - Register select, Read/Write,
  * and Enable.
@@ -63,22 +65,26 @@
 
 /*
  * ----------------------------------------------------------------------------
- *                                                             DATA PORT & PINS
+ *                                                                    DATA PORT
  * 
  * Macros to define the data port and pins.
+ * 
+ * Notes: To write values to PINS that are to be sent to the LCD's controller,
+ *        then must write to the chosesn AVR PORT when the pins are configured
+ *        for output. When reading in PIN values set by the LCD, then must read 
+ *        the PIN register (not the PORT) when the chosen AVR port pins are
+ *        configured for input. Therefore, from the macros below, use DATA_PORT
+ *        when sending values and DATA_PIN when retrieving values. Use
+ *        DATA_DDR to set whether the pins are input or output. Though the 
+ *        data direction for each pin can be set individually, this should not
+ *        be necessary in this implementation. To set all the port pins to 
+ *        output, DATA_DDR = 0xFF and for input, DATA_DDR = 0.
  * ----------------------------------------------------------------------------
  */
 
-#define DATA_PORT_DDR         DDRA
-#define DATA_PORT             PORTA
-#define DB0                   PA0
-#define DB1                   PA1
-#define DB2                   PA2
-#define DB3                   PA3
-#define DB4                   PA4
-#define DB5                   PA5
-#define DB6                   PA6
-#define DB7                   PA7
+#define DATA_DDR              DDRA          /* Data Direction Register */
+#define DATA_PORT             PORTA         /* for sending OUT values */
+#define DATA_PIN              PINA          /* for reading IN values */
 
 
 /*
@@ -184,20 +190,20 @@
  ******************************************************************************
  */
 
- /* 
-  * ---------------------------------------------------------------------------
-  *                                                          INITIALIZE THE LCD
-  * 
-  * Description : The 'Initializing by Instruction' routine - 8-bit mode 
-  *               version. This must be executed if the power supply conditions
-  *               for operating the internal reset circuit are not met when 
-  *               powering up.
-  * 
-  * Arguments   : void
-  * 
-  * Returns     : void
-  * ---------------------------------------------------------------------------
-  */
+/* 
+ * ----------------------------------------------------------------------------
+ *                                                           INITIALIZE THE LCD
+ * 
+ * Description : The 'Initializing by Instruction' routine - 8-bit mode
+ *               version. This must be executed if the power supply conditions
+ *               for operating the internal reset circuit are not met when 
+ *               powering up.
+ * 
+ * Arguments   : void
+ * 
+ * Returns     : void
+ * ----------------------------------------------------------------------------
+ */
 
 void lcd_init (void);
 
@@ -478,7 +484,7 @@ uint8_t lcd_readData (void);
  * ----------------------------------------------------------------------------
 */
 
-uint8_t lcd_waitBusy (void);
+uint8_t lcd_waitClearBusy (void);
 
 
 /* 

@@ -45,6 +45,20 @@
 #include "lcd_sf.h"
 
 
+// 127 = backspace/delete for my apple keyboard
+#define BACK_SPACE           127
+
+// some control operations using apple keyboard
+#define HOME                 0x08      // ctrl + h
+#define CLEAR                0x03      // ctrl + c
+#define R_DISP_SHIFT         0x08      // ctrl + d
+
+// for left and right arrows
+#define ARROW_CTRL_2         0x1B
+#define ARROW_CTRL_1         0x5B
+#define L_ARROW              0x44
+#define R_ARROW              0x43
+
 int main(void)
 {
   // usart required for character entry
@@ -69,7 +83,7 @@ int main(void)
     // character, backspace. Note this is set for use with a mac keyboard
     // where the backspace/delete key = 127 (delete).
     //
-    if (c == 127)
+    if (c == BACK_SPACE)
     {        
       // set display to decrement address counter (AC)
       lcd_entryModeSet (DECREMENT);
@@ -110,15 +124,15 @@ int main(void)
     }
 
     // if ctrl + 'h', return home. 
-    else if (c == 0x08)
+    else if (c == HOME)
       lcd_returnHome();
     
     // if ctrl + 'c', clear screen.
-    else if (c == 0x03) 
+    else if (c == CLEAR) 
       lcd_clearDisplay();
 
     // if ctrl + 'd', shift display.
-    else if (c == 0x04) 
+    else if (c == R_DISP_SHIFT) 
       lcd_rightShiftDisplay ();
 
     //
@@ -126,16 +140,16 @@ int main(void)
     // Note on mac keyboard, right and left arrows are 3 characters long and 
     // only differ in the third character. Right = 0x1B5B43, Left = 0x1B5B44.
     //
-    else if (c == 0x1B)
+    else if (c == ARROW_CTRL_2)
     {
       c = usart_receive();
-      if (c == 0x5B)
+      if (c == ARROW_CTRL_1)
       {
         addr = lcd_readAddr();
         c = usart_receive();
 
         // Left arrow
-        if (c == 0x44)
+        if (c == L_ARROW)
         {
           if (LINE_2_BEG == addr)
             lcd_setAddrDDRAM (LINE_1_END);
@@ -147,7 +161,7 @@ int main(void)
             lcd_leftShiftCursor();
         }
         // right arrow
-        else if (c == 0x43)
+        else if (c == R_ARROW)
         {
           if (addr == LINE_1_END)
             lcd_setAddrDDRAM(LINE_2_BEG);

@@ -40,6 +40,7 @@
 #include <util/delay.h>
 #include "prints.h"
 #include "usart0.h"
+#include "lcd_addr.h"
 #include "lcd_base.h"
 #include "lcd_sf.h"
 

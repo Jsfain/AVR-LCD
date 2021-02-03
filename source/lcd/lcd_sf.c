@@ -39,8 +39,8 @@
 
 uint8_t lcd_readAddr (void)
 {
-  // clear busy bit and return address.
-  return (0x7F & lcd_readBusyAndAddr());
+  // extract and return address.
+  return (ADDRESS_MASK & lcd_readBusyAndAddr());
 }
 
 

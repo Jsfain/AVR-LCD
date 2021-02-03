@@ -33,7 +33,7 @@ void pvt_instrPreset (void)
   lcd_waitClearBusy();
 
   // Set ctrl port pins
-  DATA_REGISTER;
+  DATA_REG_SELECT;
   WRITE_MODE;
 }
 
@@ -65,11 +65,11 @@ void lcd_init (void)
   ENABLE_LO;
   
   // Set Data and Control port data direction to output 
-  DATA_DDR = 0xFF;
-  CTRL_PORT_DDR = 0xFF;
+  DATA_DDR = DDR_OUTPUT;
+  CTRL_DDR = DDR_OUTPUT;
 
   // Set ctrl port pins to necessary values
-  DATA_REGISTER;
+  DATA_REG_SELECT;
   WRITE_MODE;
 
   // Busy flag should not be checked until after these
@@ -78,7 +78,7 @@ void lcd_init (void)
   lcd_sendInstruction (FUNCTION_SET | DATA_LENGTH_8_BITS);
   _delay_ms(5);
   lcd_sendInstruction (FUNCTION_SET | DATA_LENGTH_8_BITS);
-  _delay_ms(0.2);
+  _delay_ms(1);
   lcd_sendInstruction (FUNCTION_SET | DATA_LENGTH_8_BITS);
 
   // Busy flag can be checked, so now the instruction functions can be used.
@@ -365,25 +365,25 @@ uint8_t lcd_readBusyAndAddr (void)
   uint8_t busy_addr;       
 
   // data pins set to input
-  DATA_DDR = 0;
+  DATA_DDR = DDR_INPUT;
 
   //
   // Set control port pins. For control port instructions, these settings
   // are the instruction which is "sent" when the ENABLE pin goes high.  
   //
-  DATA_REGISTER;
+  DATA_REG_SELECT;
   READ_MODE;
 
-  // 'send' instruction
+  // "send" control port instruction
   ENABLE_HI;
 
-  // wait and read in pin values
+  // wait then read pin values
   _delay_ms(1);
   busy_addr = DATA_PIN;
   _delay_ms(1);
 
-  // data pins set to input
-  DATA_DDR = 0xFF;
+  // reset data pins back to output before exiting
+  DATA_DDR = DDR_OUTPUT;
   
   // return the current busy flag and address counter
   return busy_addr;
@@ -413,13 +413,13 @@ void lcd_writeData (uint8_t data)
   lcd_waitClearBusy();
 
   // set control port pins
-  INST_REGISTER;
+  INSTR_REG_SELECT;
   WRITE_MODE;
 
   // write to data port
   DATA_PORT = data;
   
-  // wait and pulse enable pin to send the data.
+  // wait and pulse enable pin to send the data to LCD.
   _delay_ms(1);
   lcd_pulseEnable();
 }
@@ -443,19 +443,18 @@ void lcd_writeData (uint8_t data)
 
 uint8_t lcd_readData (void)
 {
-  uint8_t data = 0;
+  uint8_t data;
 
   // ensure LCD controller is not busy
   lcd_waitClearBusy();
 
-  // data pins set to input
-  DATA_DDR = 0;
+  DATA_DDR = DDR_INPUT;
 
   //
   // Set control port pins. For control port instructions, these settings
   // are the instruction which is "sent" when the ENABLE pin goes high.  
   //
-  INST_REGISTER;
+  INSTR_REG_SELECT;
   READ_MODE;
 
   // 'send' the instruction
@@ -467,8 +466,8 @@ uint8_t lcd_readData (void)
   data = DATA_PIN;
   _delay_ms(1);
 
-  // set data pins back to input
-  DATA_DDR = 0xFF;
+  // set data pins back to output before exiting
+  DATA_DDR = DDR_OUTPUT;
 
   // return the CGRAM or DDRAM data
   return data;
@@ -501,7 +500,7 @@ uint8_t lcd_waitClearBusy (void)
   {
     //delay between loop iterations
     _delay_ms(1);
-    if ( !(lcd_readBusyAndAddr() & 0x80))
+    if ( !(lcd_readBusyAndAddr() & BUSY_MASK))
       return BUSY_RESET_SUCCESS;
   }
   // busy flag NOT cleared

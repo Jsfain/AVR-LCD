@@ -19,13 +19,16 @@
 #define LCD_BASE_H
 
 #include <avr/io.h>
-#include "lcd_addr.h"
 
 /*
  ******************************************************************************
  *                                    MACROS
  ******************************************************************************
  */
+
+#define DDR_INPUT            0x00           /* use to set DDRs to input */
+#define DDR_OUTPUT           0xFF           /* use to set DDRs to output */
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -44,23 +47,23 @@
  * ----------------------------------------------------------------------------
  */
 
-#define CTRL_PORT_DDR         DDRC
-#define CTRL_PORT             PORTC
-#define RS                    PC0                          /* Reg select */
-#define RW                    PC1                          /* Read/Write */
-#define EN                    PC2                          /* Enable */
+#define CTRL_DDR             DDRC         /* Control Port Direction Register */
+#define CTRL_PORT            PORTC            
+#define RS                   PC0                           /* Reg select */
+#define RW                   PC1                           /* Read/Write */
+#define EN                   PC2                           /* Enable */
 
 // REGISTER SELECT
-#define DATA_REGISTER         CTRL_PORT &= ~(1 << RS)      /* RS = 0 */
-#define INST_REGISTER         CTRL_PORT |=  (1 << RS)      /* RS = 1 */
+#define DATA_REG_SELECT      CTRL_PORT &= ~(1 << RS)       /* RS = 0 */
+#define INSTR_REG_SELECT     CTRL_PORT |=  (1 << RS)       /* RS = 1 */
 
 // READ/WRITE
-#define WRITE_MODE            CTRL_PORT &= ~(1 << RW)      /* RW = 0 */
-#define READ_MODE             CTRL_PORT |=  (1 << RW)      /* RW = 1 */
+#define WRITE_MODE           CTRL_PORT &= ~(1 << RW)       /* RW = 0 */
+#define READ_MODE            CTRL_PORT |=  (1 << RW)       /* RW = 1 */
 
 // ENABLE
-#define ENABLE_LO             CTRL_PORT &= ~(1 << EN)      /* EN = 0 */
-#define ENABLE_HI             CTRL_PORT |=  (1 << EN)      /* EN = 1 */
+#define ENABLE_LO            CTRL_PORT &= ~(1 << EN)       /* EN = 0 */
+#define ENABLE_HI            CTRL_PORT |=  (1 << EN)       /* EN = 1 */
 
 
 /*
@@ -82,9 +85,9 @@
  * ----------------------------------------------------------------------------
  */
 
-#define DATA_DDR              DDRA          /* Data Direction Register */
-#define DATA_PORT             PORTA         /* for sending OUT values */
-#define DATA_PIN              PINA          /* for reading IN values */
+#define DATA_DDR             DDRA           /* Data Port Direction Register */
+#define DATA_PORT            PORTA          /* for sending OUT values */
+#define DATA_PIN             PINA           /* for reading IN values */
 
 
 /*
@@ -109,14 +112,14 @@
  * ----------------------------------------------------------------------------
  */
 
-#define CLEAR_DISPLAY         0x01
-#define RETURN_HOME           0x02
-#define ENTRY_MODE_SET        0x04
-#define DISPLAY_CTRL          0x08
-#define CURSOR_DISPLAY_SHIFT  0x10
-#define FUNCTION_SET          0x20
-#define SET_CGRAM_ADDR        0x40
-#define SET_DDRAM_ADDR        0x80
+#define CLEAR_DISPLAY        0x01
+#define RETURN_HOME          0x02
+#define ENTRY_MODE_SET       0x04
+#define DISPLAY_CTRL         0x08
+#define CURSOR_DISPLAY_SHIFT 0x10
+#define FUNCTION_SET         0x20
+#define SET_CGRAM_ADDR       0x40
+#define SET_DDRAM_ADDR       0x80
 
 
 /*
@@ -132,31 +135,31 @@
  */
 
 // ENTRY_MODE_SET
-#define INCREMENT             0x02
-#define DECREMENT             0x00
-#define DISPLAY_SHIFT_DATA    0x01
+#define INCREMENT            0x02
+#define DECREMENT            0x00
+#define DISPLAY_SHIFT_DATA   0x01
 
 // DISPLAY_ON_OFF_CTRL
-#define DISPLAY_ON            0x04
-#define DISPLAY_OFF           0x00
-#define CURSOR_ON             0x02
-#define CURSOR_OFF            0x00
-#define BLINKING_ON           0x01
-#define BLINKING_OFF          0x00
+#define DISPLAY_ON           0x04
+#define DISPLAY_OFF          0x00
+#define CURSOR_ON            0x02
+#define CURSOR_OFF           0x00
+#define BLINKING_ON          0x01
+#define BLINKING_OFF         0x00
 
 // CURSOR_DISPLAY_SHIFT
-#define DISPLAY_SHIFT         0x08
-#define CURSOR_SHIFT          0x00
-#define RIGHT_SHIFT           0x04
-#define LEFT_SHIFT            0x00
+#define DISPLAY_SHIFT        0x08
+#define CURSOR_SHIFT         0x00
+#define RIGHT_SHIFT          0x04
+#define LEFT_SHIFT           0x00
 
 // FUNCTION_SET
-#define DATA_LENGTH_8_BITS    0x10
-#define DATA_LENGTH_4_BITS    0x00
-#define TWO_LINES             0x08
-#define ONE_LINE              0x00
-#define FONT_5x10             0x04
-#define FONT_5x8              0x00
+#define DATA_LENGTH_8_BITS   0x10
+#define DATA_LENGTH_4_BITS   0x00
+#define TWO_LINES            0x08
+#define ONE_LINE             0x00
+#define FONT_5x10            0x04
+#define FONT_5x8             0x00
 
 
 /*
@@ -167,8 +170,21 @@
  * ----------------------------------------------------------------------------
  */
 
-#define LCD_INSTR_SUCCESS     0x00
-#define INVALID_ARG           0x01
+#define LCD_INSTR_SUCCESS    0x00
+#define INVALID_ARG          0x01
+
+
+/*
+ * ----------------------------------------------------------------------------
+ *                                                        BUSY and ADDRESS MASK
+ * 
+ * These are used to filter the busy flag and the address counter value from 
+ * the byte returned by lcd_readBusyAndAddr().
+ * ----------------------------------------------------------------------------
+ */
+
+#define ADDRESS_MASK    0x7F      
+#define BUSY_MASK       0x80
 
 
 /*
@@ -180,8 +196,9 @@
  * ----------------------------------------------------------------------------
  */
 
-#define BUSY_RESET_SUCCESS    0x02
-#define BUSY_RESET_TIMEOUT    0x04
+#define BUSY_RESET_SUCCESS   0x02
+#define BUSY_RESET_TIMEOUT   0x04
+
 
 
 /*
